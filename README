@@ -1,3 +1,13 @@
 Android interface between transit real-time arrival APIs and bluetooth readout devices.
 
+Building:
+
+Create a file res/values/onebusaway.xml
+
+  <?xml version="1.0" encoding="utf-8"?>
+  <resources>
+      <string name="apikey">YOUR_ONEBUSAWAY_API_KEY</string>
+  </resources>
+
 This Android project is proudly Eclipse-free. Get your command line on!
+

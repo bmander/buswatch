@@ -10,6 +10,7 @@ import java.lang.*;
 import android.view.*;
 import org.json.*;
 import android.content.res.Resources;
+import android.content.Intent;
 
 public class BusWatch extends Activity
 {
@@ -66,7 +67,7 @@ public class BusWatch extends Activity
         // add a click listener to the button
         okButton.setOnClickListener( new OkButtonClickListener() );
         
-        print( apikey );
+        this.sendBroadcast( new Intent("com.smartmadsoft.openwatch.action.VIBRATE") );
 
     }
     

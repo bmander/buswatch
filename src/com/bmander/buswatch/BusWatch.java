@@ -11,6 +11,7 @@ import android.view.*;
 import org.json.*;
 import android.content.res.Resources;
 import android.content.Intent;
+import android.os.SystemClock;
 
 public class BusWatch extends Activity
 {
@@ -43,7 +44,13 @@ public class BusWatch extends Activity
                         eta = scheduledArrival - System.currentTimeMillis();
                     }
                     
-                    print( short_name+" "+headsign+" "+eta );
+                    long minutes = eta/60000;
+                    long seconds = (eta%60000)/1000;
+                    String str_eta = minutes+" min "+seconds+" sec";
+                    
+                    textPhone( short_name+" "+headsign, str_eta );
+                    
+                    SystemClock.sleep(4000);
                 }
             } catch( JSONException e ) {
                 print( e.getMessage() );
@@ -66,9 +73,14 @@ public class BusWatch extends Activity
         
         // add a click listener to the button
         okButton.setOnClickListener( new OkButtonClickListener() );
-        
-        this.sendBroadcast( new Intent("com.smartmadsoft.openwatch.action.VIBRATE") );
-
+    
+    }
+    
+    private void textPhone(String line1, String line2) {
+        Intent phoneIntent = new Intent("com.smartmadsoft.openwatch.action.TEXT");
+        phoneIntent.putExtra( "line1", line1 );
+        phoneIntent.putExtra( "line2", line2 );
+        this.sendBroadcast( phoneIntent );
     }
     
     private void print(String str) {

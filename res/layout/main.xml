@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:background="@android:drawable/editbox_background"
         android:layout_below="@id/label"
-        android:text="10020" />
+        android:text="11200" />
 
     <Button
         android:id="@+id/ok"
@@ -37,7 +37,6 @@
         android:id="@+id/content"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ok"
-        android:text="some content"/>
+        android:layout_below="@+id/ok"/>
 
 </RelativeLayout>

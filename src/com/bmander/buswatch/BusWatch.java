@@ -21,6 +21,31 @@ public class BusWatch extends Activity
     
     String TAG = "BusWatch";
     
+    class SendTimesToWatchRunner extends Thread {
+        ArrayList<OneBusAway.ArrivalPrediction> bustimes;
+        
+        SendTimesToWatchRunner(ArrayList<OneBusAway.ArrivalPrediction> bustimes) {
+            this.bustimes = bustimes;
+        }
+        
+        public void run() {
+            // show each prediction on the watch, at a regular interval
+            for(int i=0; i<bustimes.size(); i++) {
+                OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
+                
+                // text the watch
+                textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
+                
+                // wait a bit to print the next one
+                try {
+                    this.sleep(4000);
+                } catch(InterruptedException e) {
+                    // interrupted while waiting? do nothing.
+                }
+            }
+        }
+    }
+    
     class OkButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
             try {
@@ -31,16 +56,9 @@ public class BusWatch extends Activity
                 Log.i( TAG, "getting predictions for stop_id "+stopid );
                 ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
                 
-                // show each prediction on the watch, at a regular interval
-                for(int i=0; i<bustimes.size(); i++) {
-                    OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
-                    
-                    // text the watch
-                    textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
-                    
-                    // wait a bit to print the next one
-                    SystemClock.sleep(4000);
-                }
+                // start concurrent thread sending predictions to watch at regular intervals
+                SendTimesToWatchRunner worker = new SendTimesToWatchRunner( bustimes );
+                worker.start();
                 
             } catch( Exception e ) {
                 print( e.getMessage() );

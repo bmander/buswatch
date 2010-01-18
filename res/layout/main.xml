@@ -7,7 +7,7 @@
         android:id="@+id/label"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Type here:"/>
+        android:text="Bus Stop ID (top of signpost schedule, like xxx-11200-xxx)"/>
 
     <EditText
         android:id="@+id/entry"

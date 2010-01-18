@@ -28,7 +28,7 @@ public class BusWatch extends Activity
         public void onClick(View v) {
             try {
                 // get stop id from form input
-                String stopid = entryEditText.getText().toString()
+                String stopid = entryEditText.getText().toString();
                 
                 // get bustimes from OneBusAway API
                 JSONArray bustimes = get_bustimes( stopid, apikey );

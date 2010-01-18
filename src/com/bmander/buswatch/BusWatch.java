@@ -14,15 +14,12 @@ import android.content.Intent;
 import android.os.SystemClock;
 
 public class BusWatch extends Activity
-{
-    String API_DOMAIN = "api.onebusaway.org";
-    String ARRIVALS_DEPARTURES_PATH = "/api/where/arrivals-and-departures-for-stop/";
-    
+{    
     Button okButton;
     TextView contentTextView;
     EditText entryEditText;
     
-    String apikey;
+    OneBusAway oneBusAway;
     
     class OkButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
@@ -31,7 +28,7 @@ public class BusWatch extends Activity
                 String stopid = entryEditText.getText().toString();
                 
                 // get bustimes from OneBusAway API
-                JSONArray bustimes = get_bustimes( stopid, apikey );
+                JSONArray bustimes = oneBusAway.get_bustimes( stopid );//get_bustimes( stopid, apikey );
                 
                 // for each departure/arrival prediction
                 for(int i=0; i<bustimes.length(); i++) {
@@ -80,8 +77,10 @@ public class BusWatch extends Activity
         contentTextView = (TextView) findViewById(R.id.content);
         entryEditText = (EditText) findViewById(R.id.entry);
         
-        // fetch the OneBusAway API key from an un-versioned XML file.
-        apikey = this.getString(R.string.apikey);
+        // create an object to represent the OneBusAway API
+        String apikey = this.getString(R.string.apikey);
+        String oba_api_domain = this.getString(R.string.onebusaway_api_domain);
+        oneBusAway = new OneBusAway(oba_api_domain, apikey);
         
         // add a click listener to the button
         okButton.setOnClickListener( new OkButtonClickListener() );
@@ -105,48 +104,4 @@ public class BusWatch extends Activity
         Toast.makeText(this, str, Toast.LENGTH_LONG).show();
     }
     
-    
-    /*
-     * Fetch content for a URL
-     */
-    private String get_http_content(String url_string) {
-        try {
-            // dear lord
-            
-            // get url object from url string
-            URL url = new URL(url_string);
-            // get connection from url
-            HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-            // grt stream from connection
-            InputStream is = huc.getInputStream();
-            // get reader from stream
-            InputStreamReader isr = new InputStreamReader( is );
-            // get buffered reader from reader
-            BufferedReader br = new BufferedReader( isr );
-            
-            StringBuilder ret = new StringBuilder();
-            String line;
-            while( (line = br.readLine())!=null ) {
-                ret.append( line );
-            }
-            return ret.toString();
-            
-        } catch (MalformedURLException e) {
-            print( e.getMessage() );
-            return null;
-        } catch (IOException e) {
-            print( e.getMessage() );
-            return null;
-        }
-    }
-    
-    /*
-     * Get a JSONArray of bustimes for a given stop_id and api_key
-     */
-    private JSONArray get_bustimes(String stop_id, String api_key) throws JSONException {
-        String url_string = "http://"+API_DOMAIN+ARRIVALS_DEPARTURES_PATH+"/1_"+stop_id+".json?key="+api_key;
-        String json_response = get_http_content(url_string);
-
-        return (new JSONObject(json_response)).getJSONObject("data").getJSONArray("arrivalsAndDepartures");
-    }
 }

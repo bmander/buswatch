@@ -2,16 +2,19 @@ package com.bmander.buswatch;
 import java.net.*;
 import org.json.*;
 import java.io.*;
+import java.util.ArrayList;
 
 /*
  * Provides an interface to the OneBusAway API
  */ 
 public class OneBusAway {
     
+    String TAG = "OneBusAwayAPI";
+    
     /*
      * Thin wrapper around the 'arrivalsAndDepartures' objects returned by the 'arrivals-and-departures-for-stop' API call
      */
-    class ArrivalPrediction{
+    public class ArrivalPrediction{
         
         long NO_PREDICTION_TIME=0;
         
@@ -65,6 +68,15 @@ public class OneBusAway {
             }
         }
         
+        String getETAString() {
+            long eta = getETA();
+            
+            // make it human-readable
+            long minutes = eta/60000;
+            long seconds = (eta%60000)/1000;
+            return minutes+" min "+seconds+" sec";
+        }
+        
     }
     
     String ARRIVALS_DEPARTURES_PATH = "/api/where/arrivals-and-departures-for-stop/";
@@ -94,6 +106,7 @@ public class OneBusAway {
         // get buffered reader from reader
         BufferedReader br = new BufferedReader( isr );
         
+        // scoop the response body out of the reader one line at a time
         StringBuilder ret = new StringBuilder();
         String line;
         while( (line = br.readLine())!=null ) {
@@ -105,10 +118,22 @@ public class OneBusAway {
     /*
      * Get a JSONArray of bustimes for a given stop_id and api_key
      */
-    public JSONArray get_bustimes(String stop_id) throws JSONException, MalformedURLException, IOException {
+    public ArrayList<ArrivalPrediction> get_bustimes(String stop_id) throws JSONException, MalformedURLException, IOException {
+        // get the time that the request was made - necessary for calculating ETAs
+        long timeAtFetch = System.currentTimeMillis();
+        
+        // construct HTTP request and make it
         String url_string = "http://"+api_domain+ARRIVALS_DEPARTURES_PATH+"/1_"+stop_id+".json?key="+api_key;
         String json_response = get_http_content(url_string);
+        
+        // parse JSON and wrap it a set of ArrivalPrediction objects
+        JSONArray json_arrivaldepartures = (new JSONObject(json_response)).getJSONObject("data").getJSONArray("arrivalsAndDepartures");
+        
+        ArrayList<ArrivalPrediction> ret = new ArrayList<ArrivalPrediction>();
+        for(int i=0; i<json_arrivaldepartures.length(); i++) {
+            ret.add( new ArrivalPrediction( json_arrivaldepartures.getJSONObject( i ), timeAtFetch ) );
+        }
 
-        return (new JSONObject(json_response)).getJSONObject("data").getJSONArray("arrivalsAndDepartures");
+        return ret;
     }
 }

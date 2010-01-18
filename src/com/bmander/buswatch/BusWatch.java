@@ -8,6 +8,8 @@ import android.view.*;
 import org.json.*;
 import android.content.Intent;
 import android.os.SystemClock;
+import android.util.Log;
+import java.util.*;
 
 public class BusWatch extends Activity
 {    
@@ -17,43 +19,29 @@ public class BusWatch extends Activity
     
     OneBusAway oneBusAway;
     
+    String TAG = "BusWatch";
+    
     class OkButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
             try {
                 // get stop id from form input
                 String stopid = entryEditText.getText().toString();
                 
-                // get bustimes from OneBusAway API
-                JSONArray bustimes = oneBusAway.get_bustimes( stopid );//get_bustimes( stopid, apikey );
+                // get arrivaldeparture predictions
+                Log.i( TAG, "getting predictions for stop_id "+stopid );
+                ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
                 
-                // for each departure/arrival prediction
-                for(int i=0; i<bustimes.length(); i++) {
-                    // grab the bus description
-                    JSONObject bustime = bustimes.getJSONObject(i);
-                    String short_name = bustime.getString("routeShortName");
-                    String headsign = bustime.getString("tripHeadsign");
-                    long predictedDeparture = bustime.getLong("predictedDepartureTime");
-                    long scheduledArrival = bustime.getLong("scheduledArrivalTime");
-                    long eta;
-                    
-                    // figure out the arrival time
-                    if(predictedDeparture != 0) {
-                        eta = predictedDeparture - System.currentTimeMillis();
-                    } else {
-                        eta = scheduledArrival - System.currentTimeMillis();
-                    }
-                    
-                    // make it human-readable
-                    long minutes = eta/60000;
-                    long seconds = (eta%60000)/1000;
-                    String str_eta = minutes+" min "+seconds+" sec";
+                // show each prediction on the watch, at a regular interval
+                for(int i=0; i<bustimes.size(); i++) {
+                    OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
                     
                     // text the watch
-                    textWatch( short_name+" "+headsign, str_eta );
+                    textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
                     
-                    // wait a second to print the next one
+                    // wait a bit to print the next one
                     SystemClock.sleep(4000);
                 }
+                
             } catch( Exception e ) {
                 print( e.getMessage() );
             }

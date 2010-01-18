@@ -23,9 +23,11 @@ public class BusWatch extends Activity
     
     class SendTimesToWatchRunner extends Thread {
         ArrayList<OneBusAway.ArrivalPrediction> bustimes;
+        int interval;
         
-        SendTimesToWatchRunner(ArrayList<OneBusAway.ArrivalPrediction> bustimes) {
+        SendTimesToWatchRunner(ArrayList<OneBusAway.ArrivalPrediction> bustimes, int interval) {
             this.bustimes = bustimes;
+            this.interval = interval;
         }
         
         public void run() {
@@ -38,7 +40,7 @@ public class BusWatch extends Activity
                 
                 // wait a bit to print the next one
                 try {
-                    this.sleep(4000);
+                    this.sleep(interval);
                 } catch(InterruptedException e) {
                     // interrupted while waiting? do nothing.
                 }
@@ -57,7 +59,7 @@ public class BusWatch extends Activity
                 ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
                 
                 // start concurrent thread sending predictions to watch at regular intervals
-                SendTimesToWatchRunner worker = new SendTimesToWatchRunner( bustimes );
+                SendTimesToWatchRunner worker = new SendTimesToWatchRunner( bustimes, 4000 );
                 worker.start();
                 
             } catch( Exception e ) {

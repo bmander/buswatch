@@ -3,7 +3,70 @@ import java.net.*;
 import org.json.*;
 import java.io.*;
 
+/*
+ * Provides an interface to the OneBusAway API
+ */ 
 public class OneBusAway {
+    
+    /*
+     * Thin wrapper around the 'arrivalsAndDepartures' objects returned by the 'arrivals-and-departures-for-stop' API call
+     */
+    class ArrivalPrediction{
+        
+        long NO_PREDICTION_TIME=0;
+        
+        JSONObject content;
+        long timeAtFetch;
+        
+        ArrivalPrediction(JSONObject content, long timeAtFetch) {
+            this.content = content;
+            this.timeAtFetch = timeAtFetch;
+        }
+        
+        String getShortName() {
+            try{
+                return content.getString("routeShortName");
+            } catch(JSONException e) {
+                return "";
+            }
+        }
+        
+        String getHeadsign() {
+            try{
+                return content.getString("tripHeadsign");
+            } catch(JSONException e) {
+                return "";
+            }
+        }
+        
+        long getPredictedDepartureTime() {
+            try{
+                return content.getLong("predictedDepartureTime");
+            } catch(JSONException e) {
+                return 0;
+            }
+        }
+        
+        long getScheduledArrivalTime() {
+            try{
+                return content.getLong("scheduledArrivalTime");
+            } catch(JSONException e) {
+                return 0;
+            }
+        }
+        
+        long getETA() {
+            
+            // figure out the arrival time
+            if(getPredictedDepartureTime() != NO_PREDICTION_TIME) {
+                return getPredictedDepartureTime() - timeAtFetch;
+            } else {
+                return getScheduledArrivalTime() - timeAtFetch;
+            }
+        }
+        
+    }
+    
     String ARRIVALS_DEPARTURES_PATH = "/api/where/arrivals-and-departures-for-stop/";
     
     String api_domain;

@@ -3,13 +3,9 @@ package com.bmander.buswatch;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.*;
-import android.net.*;
-import java.net.*;
-import java.io.*;
 import java.lang.*;
 import android.view.*;
 import org.json.*;
-import android.content.res.Resources;
 import android.content.Intent;
 import android.os.SystemClock;
 

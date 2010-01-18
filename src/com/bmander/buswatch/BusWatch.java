@@ -22,49 +22,44 @@ public class BusWatch extends Activity
     String TAG = "BusWatch";
     
     class SendTimesToWatchRunner extends Thread {
-        ArrayList<OneBusAway.ArrivalPrediction> bustimes;
+        String stopid;
         int interval;
         
-        SendTimesToWatchRunner(ArrayList<OneBusAway.ArrivalPrediction> bustimes, int interval) {
-            this.bustimes = bustimes;
+        SendTimesToWatchRunner(String stopid, int interval) {
+            this.stopid = stopid;
             this.interval = interval;
         }
         
         public void run() {
-            // show each prediction on the watch, at a regular interval
-            for(int i=0; i<bustimes.size(); i++) {
-                OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
+            try {
+                // get arrivaldeparture predictions
+                Log.i( TAG, "getting predictions for stop_id "+stopid );
+                ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
                 
-                // text the watch
-                textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
-                
-                // wait a bit to print the next one
-                try {
+                // show each prediction on the watch, at a regular interval
+                for(int i=0; i<bustimes.size(); i++) {
+                    OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
+                    
+                    // text the watch
+                    textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
+                    
+                    // wait a bit to print the next one
                     this.sleep(interval);
-                } catch(InterruptedException e) {
-                    // interrupted while waiting? do nothing.
                 }
+            } catch( Exception e ) {
+                print( e.getMessage() );
             }
         }
     }
     
     class OkButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
-            try {
-                // get stop id from form input
-                String stopid = entryEditText.getText().toString();
-                
-                // get arrivaldeparture predictions
-                Log.i( TAG, "getting predictions for stop_id "+stopid );
-                ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
-                
-                // start concurrent thread sending predictions to watch at regular intervals
-                SendTimesToWatchRunner worker = new SendTimesToWatchRunner( bustimes, 4000 );
-                worker.start();
-                
-            } catch( Exception e ) {
-                print( e.getMessage() );
-            }
+            // get stop id from form input
+            String stopid = entryEditText.getText().toString();
+            
+            // start concurrent thread sending predictions to watch at regular intervals
+            SendTimesToWatchRunner worker = new SendTimesToWatchRunner( stopid, 4000 );
+            worker.start();
         }
     }
     

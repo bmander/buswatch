@@ -55,17 +55,27 @@
         android:background="@android:drawable/editbox_background"
         android:layout_below="@id/durationlabel"
         android:text="5" />
+        
+    <Spinner 
+        android:id="@+id/durationspinner"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:drawSelectorOnTop="true"
+        android:layout_below="@id/durationentry"
+        android:prompt="@string/duration_prompt"
+    />
 
     <Button
         android:id="@+id/ok"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/durationentry"
+        android:layout_below="@id/durationspinner"
         android:layout_alignParentRight="true"
         android:layout_marginLeft="10dip"
         android:text="OK" />
 
     <Button
+        android:id="@+id/cancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toLeftOf="@id/ok"

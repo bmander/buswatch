@@ -12,15 +12,19 @@ import android.util.Log;
 import java.util.*;
 import android.view.inputmethod.EditorInfo;
 import android.os.Handler;
+import android.content.Context;
 
 public class BusWatch extends Activity
 {    
     Button okButton;
+    Button cancelButton;
     TextView contentTextView;
     EditText entryEditText;
     EditText durationEditText;
     ProgressBar progressBar;
     LinearLayout routesLinear;
+    ArrayList<CheckBox> routeSelectors = new ArrayList<CheckBox>();
+    Spinner durationSpinner;
     
     OneBusAway oneBusAway;
     
@@ -32,25 +36,38 @@ public class BusWatch extends Activity
     int TEXTPERIOD = 4000;
     
     private Handler mHandler = new Handler();
+
+    Context busWatchContext = this;
+    
+    String stopId = "";
+    
+    SendTimesToWatchRunner currentWatchRunner = null;
     
     class SendTimesToWatchRunner extends Thread {
         String stopid;
         int period; // milliseconds
         int duration; // milliseconds
+        boolean running;
          
         SendTimesToWatchRunner(String stopid, int period, int duration) {
             this.stopid = stopid;
             this.period = period;
             this.duration = duration;
+            this.running = false;
+        }
+        
+        public void politeStop() {
+            this.running = false;
         }
         
         public void run() {
+            this.running = true;
             try {
                 // figure out the time at start
                 long timeAtStart = System.currentTimeMillis();
                 
                 // repeat for duration
-                while(System.currentTimeMillis() < timeAtStart+duration) {
+                while(this.running && System.currentTimeMillis() < timeAtStart+duration) {
                     Log.d( TAG, "current time:"+System.currentTimeMillis()+" end time:"+(timeAtStart+duration) );
                 
                     // get arrivaldeparture predictions
@@ -80,6 +97,14 @@ public class BusWatch extends Activity
             this.routeId = routeId;
         }
         
+        public void printInMainThread(final String str) {
+            mHandler.post(new Runnable() {
+                public void run() {
+                    print( str );
+                }
+            });
+        }
+        
         public void run() {
             // attempt to get 
             Log.i( TAG, "get routes for "+routeId ); 
@@ -87,16 +112,34 @@ public class BusWatch extends Activity
             // show the indeterminate progress spinner
             mHandler.post(new Runnable() {
                 public void run() {
+                    routesLinear.removeAllViews();
                     progressBar.setVisibility(View.VISIBLE);
                 }
             });
             
-            // fetch the routes
+            // fetch the routes and fill out the checkboxes for them
             try{
-                ArrayList<OneBusAway.Route> routes = oneBusAway.getRoutes( routeId );
-                Log.i( TAG, "got "+routes.size()+" routes" );
+                final ArrayList<OneBusAway.Route> routes = oneBusAway.getRoutes( routeId );
+                
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        
+                        for(int i=0; i<routes.size(); i++) {
+                            OneBusAway.Route route = routes.get(i);
+                            
+                            // put a checkbox on the right, pre-filled out
+                            CheckBox checkBox = new CheckBox(busWatchContext);
+                            checkBox.setChecked(true);
+                            checkBox.setText( route.getShortName()+" "+route.getDescription() );
+                            routesLinear.addView( checkBox );
+                            routeSelectors.add( checkBox );
+                    
+                        }
+                    }
+                });
+
             } catch( Exception e ) {
-                print( "routes fetch failed: "+e.getMessage() );
+                printInMainThread( "routes fetch failed: "+e.getMessage() );
             }
             
             // hide the indeterminate progress spinner
@@ -116,26 +159,54 @@ public class BusWatch extends Activity
             
             Log.d( TAG, "run for duration:"+duration );
             
-            // start concurrent thread sending predictions to watch at regular intervals
+            // stop the current watch runner if it's going
+            if( currentWatchRunner != null ) {
+                currentWatchRunner.politeStop();
+            }
+            
+            // start a new watch runner
             Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
-            SendTimesToWatchRunner worker = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
-            worker.start();
+            currentWatchRunner = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
+            currentWatchRunner.start();
+        }
+    }
+    
+    class CancelButtonClickListener implements View.OnClickListener {
+        public void onClick(View v) {
+            // stop the current watch runner if it's going
+            if( currentWatchRunner != null ) {
+                currentWatchRunner.politeStop();
+            }
         }
     }
     
     class StopIdFocusChangeListener implements View.OnFocusChangeListener {
         public void onFocusChange (View v, boolean hasFocus) {
-            
-            print( "focus is "+hasFocus );
-            
+                        
             // if they've progressed to the next dialog box
             if( !hasFocus ) {
                 // get the route id
-                String routeId = ((TextView)v).getText().toString();
+                String newStopId = ((TextView)v).getText().toString();
             
-                (new GetRoutesThread(routeId)).start();
+                // if this is a different stop id than we already have all locked in
+                if( !stopId.equals(newStopId) ) {
+                    stopId = newStopId;
+                    (new GetRoutesThread(stopId)).start();
+                }
             }
 
+        }
+    }
+    
+    class DurationSpinnerItem {
+        int duration;
+        
+        DurationSpinnerItem(int duration) {
+            this.duration = duration;
+        }
+        
+        public String toString() {
+            return this.duration+" minutes";
         }
     }
     
@@ -152,6 +223,7 @@ public class BusWatch extends Activity
         Log.i( TAG, "object: "+ findViewById(R.id.ok) );
         
         okButton = (Button) findViewById(R.id.ok);
+        cancelButton = (Button) findViewById(R.id.cancel);
         contentTextView = (TextView) findViewById(R.id.content);
         entryEditText = (EditText) findViewById(R.id.entry);
         durationEditText = (EditText) findViewById(R.id.durationentry);
@@ -163,15 +235,27 @@ public class BusWatch extends Activity
         String oba_api_domain = this.getString(R.string.onebusaway_api_domain);
         oneBusAway = new OneBusAway(oba_api_domain, apikey);
         
-        // add a click listener to the button
+        // add a click listener to the ok button
         okButton.setOnClickListener( new OkButtonClickListener() );
+        
+        // add a click listener to the cancel button
+        cancelButton.setOnClickListener( new CancelButtonClickListener() );
         
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );
         
-        // set progress spinner to indeterminate and make sure it's off
+        // set progress spinner to indeterminate
         progressBar.setIndeterminate(true);
-    
+        
+        // create and fill out spinner duration
+        durationSpinner = (Spinner) findViewById(R.id.durationspinner);
+        ArrayAdapter<DurationSpinnerItem> adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
+        int[] durations = this.getResources().getIntArray( R.array.durations );
+        for(int i=0; i<durations.length; i++) {
+            adapter.add( new DurationSpinnerItem(durations[i]) );
+        }
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        durationSpinner.setAdapter(adapter);
     }
     
     /*

@@ -16,35 +16,51 @@ public class BusWatch extends Activity
     Button okButton;
     TextView contentTextView;
     EditText entryEditText;
+    EditText durationEditText;
     
     OneBusAway oneBusAway;
     
     String TAG = "BusWatch";
     
+    int SECS_IN_MINUTE = 60;
+    int MILLISECS_IN_SECS = 1000;
+    
+    int TEXTPERIOD = 4000;
+    
+    
     class SendTimesToWatchRunner extends Thread {
         String stopid;
-        int interval;
+        int period; // milliseconds
+        int duration; // milliseconds
         
-        SendTimesToWatchRunner(String stopid, int interval) {
+        SendTimesToWatchRunner(String stopid, int period, int duration) {
             this.stopid = stopid;
-            this.interval = interval;
+            this.period = period;
+            this.duration = duration;
         }
         
         public void run() {
             try {
-                // get arrivaldeparture predictions
-                Log.i( TAG, "getting predictions for stop_id "+stopid );
-                ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
+                // figure out the time at start
+                long timeAtStart = System.currentTimeMillis();
                 
-                // show each prediction on the watch, at a regular interval
-                for(int i=0; i<bustimes.size(); i++) {
-                    OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
+                // repeat for duration
+                while(System.currentTimeMillis() < timeAtStart+duration) {
+                    Log.d( TAG, "current time:"+System.currentTimeMillis()+" end time:"+(timeAtStart+duration) );
+                
+                    // get arrivaldeparture predictions
+                    ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
                     
-                    // text the watch
-                    textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
-                    
-                    // wait a bit to print the next one
-                    this.sleep(interval);
+                    // show each prediction on the watch, at a regular interval
+                    for(int i=0; i<bustimes.size(); i++) {
+                        OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
+                        
+                        // text the watch
+                        textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
+                        
+                        // wait a bit to print the next one
+                        this.sleep(period);
+                    }
                 }
             } catch( Exception e ) {
                 print( e.getMessage() );
@@ -54,11 +70,15 @@ public class BusWatch extends Activity
     
     class OkButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
-            // get stop id from form input
+            // get stop id and duration from form input
             String stopid = entryEditText.getText().toString();
+            int duration = Integer.parseInt( durationEditText.getText().toString() )*MILLISECS_IN_SECS;
+            
+            Log.d( TAG, "run for duration:"+duration );
             
             // start concurrent thread sending predictions to watch at regular intervals
-            SendTimesToWatchRunner worker = new SendTimesToWatchRunner( stopid, 4000 );
+            Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
+            SendTimesToWatchRunner worker = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
             worker.start();
         }
     }
@@ -72,9 +92,13 @@ public class BusWatch extends Activity
         setContentView(R.layout.main);
         
         // fetch elements defined in XML layout so we can manipulate them
+        Log.i( TAG, "id: "+R.id.ok );
+        Log.i( TAG, "object: "+ findViewById(R.id.ok) );
+        
         okButton = (Button) findViewById(R.id.ok);
         contentTextView = (TextView) findViewById(R.id.content);
         entryEditText = (EditText) findViewById(R.id.entry);
+        durationEditText = (EditText) findViewById(R.id.durationentry);
         
         // create an object to represent the OneBusAway API
         String apikey = this.getString(R.string.apikey);

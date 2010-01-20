@@ -15,6 +15,8 @@
         android:layout_height="wrap_content"
         android:background="@android:drawable/editbox_background"
         android:layout_below="@id/label"
+        android:singleLine="true"
+        android:numeric="integer"
         android:text="11200" />
         
     <RelativeLayout
@@ -22,18 +24,21 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/entry">
-        <RelativeLayout
-            android:id="@+id/progresslayout"
+        <ProgressBar
+            android:id="@+id/progressbar"
             android:layout_width="50px"
             android:layout_height="50px"
+            android:layout_below="@id/entry"
+            android:visibility="invisible"
             android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true">
-            <ProgressBar
-                android:id="@+id/progressbar"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_below="@id/entry" />
-        </RelativeLayout>
+            android:layout_centerVertical="true"/>
+        <LinearLayout
+            android:id="@+id/routes"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+        </LinearLayout>
     </RelativeLayout>
         
     <TextView

@@ -79,7 +79,48 @@ public class OneBusAway {
         
     }
     
+    public class Route {
+        JSONObject content;
+        
+        Route( JSONObject content ){
+            this.content = content;
+        }
+        
+        String getId() {
+            try {
+                return content.getString( "id" );
+            } catch(JSONException e) {
+                return null;
+            }
+        }
+        
+        String getDescription() {
+            try {
+                return content.getString( "description" );
+            } catch(JSONException e) {
+                return "";
+            }
+        }
+        
+        String getLongName() {
+            try {
+                return content.getString( "longName" );
+            } catch(JSONException e) {
+                return "";
+            }
+        }
+        
+        String getShortName() {
+            try {
+                return content.getString( "shortName" );
+            } catch(JSONException e) {
+                return "";
+            }
+        }
+    }
+    
     String ARRIVALS_DEPARTURES_PATH = "/api/where/arrivals-and-departures-for-stop/";
+    String STOP_PATH = "/api/where/stop/";
     
     String api_domain;
     String api_key;
@@ -116,7 +157,7 @@ public class OneBusAway {
     }
     
     /*
-     * Get a JSONArray of bustimes for a given stop_id and api_key
+     * Get an ArrayList of bustimes for a given stop_id and api_key
      */
     public ArrayList<ArrivalPrediction> get_bustimes(String stop_id) throws JSONException, MalformedURLException, IOException {
         // get the time that the request was made - necessary for calculating ETAs
@@ -134,6 +175,24 @@ public class OneBusAway {
             ret.add( new ArrivalPrediction( json_arrivaldepartures.getJSONObject( i ), timeAtFetch ) );
         }
 
+        return ret;
+    }
+    
+    /*
+     * Get an ArrayList of routes associated with this stop
+     */
+    public ArrayList<Route> getRoutes(String stop_id) throws JSONException, MalformedURLException, IOException {
+        // construct HTTP request and make it
+        String url_string = "http://"+api_domain+STOP_PATH+"/1_"+stop_id+".json?key="+api_key;
+        String json_response = get_http_content(url_string);
+        
+        JSONArray jsonRoutes = (new JSONObject(json_response)).getJSONObject("data").getJSONArray("routes");
+        
+        ArrayList<Route> ret = new ArrayList<Route>();
+        for(int i=0; i<jsonRoutes.length(); i++) {
+            ret.add( new Route( jsonRoutes.getJSONObject( i ) ) );
+        }
+        
         return ret;
     }
 }

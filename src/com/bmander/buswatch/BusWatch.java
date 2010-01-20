@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.os.SystemClock;
 import android.util.Log;
 import java.util.*;
+import android.view.inputmethod.EditorInfo;
+import android.os.Handler;
 
 public class BusWatch extends Activity
 {    
@@ -18,6 +20,7 @@ public class BusWatch extends Activity
     EditText entryEditText;
     EditText durationEditText;
     ProgressBar progressBar;
+    LinearLayout routesLinear;
     
     OneBusAway oneBusAway;
     
@@ -28,6 +31,7 @@ public class BusWatch extends Activity
     
     int TEXTPERIOD = 4000;
     
+    private Handler mHandler = new Handler();
     
     class SendTimesToWatchRunner extends Thread {
         String stopid;
@@ -67,7 +71,42 @@ public class BusWatch extends Activity
                 print( e.getMessage() );
             }
         }
-    }  
+    }
+    
+    class GetRoutesThread extends Thread {
+        String routeId;
+        
+        GetRoutesThread(String routeId) {
+            this.routeId = routeId;
+        }
+        
+        public void run() {
+            // attempt to get 
+            Log.i( TAG, "get routes for "+routeId ); 
+            
+            // show the indeterminate progress spinner
+            mHandler.post(new Runnable() {
+                public void run() {
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+            });
+            
+            // fetch the routes
+            try{
+                ArrayList<OneBusAway.Route> routes = oneBusAway.getRoutes( routeId );
+                Log.i( TAG, "got "+routes.size()+" routes" );
+            } catch( Exception e ) {
+                print( "routes fetch failed: "+e.getMessage() );
+            }
+            
+            // hide the indeterminate progress spinner
+            mHandler.post(new Runnable() {
+                public void run() {
+                    progressBar.setVisibility(View.INVISIBLE);
+                }
+            });
+        }
+    }
     
     class OkButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
@@ -81,6 +120,22 @@ public class BusWatch extends Activity
             Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
             SendTimesToWatchRunner worker = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
             worker.start();
+        }
+    }
+    
+    class StopIdFocusChangeListener implements View.OnFocusChangeListener {
+        public void onFocusChange (View v, boolean hasFocus) {
+            
+            print( "focus is "+hasFocus );
+            
+            // if they've progressed to the next dialog box
+            if( !hasFocus ) {
+                // get the route id
+                String routeId = ((TextView)v).getText().toString();
+            
+                (new GetRoutesThread(routeId)).start();
+            }
+
         }
     }
     
@@ -101,6 +156,7 @@ public class BusWatch extends Activity
         entryEditText = (EditText) findViewById(R.id.entry);
         durationEditText = (EditText) findViewById(R.id.durationentry);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
+        routesLinear = (LinearLayout) findViewById(R.id.routes);
         
         // create an object to represent the OneBusAway API
         String apikey = this.getString(R.string.apikey);
@@ -109,6 +165,9 @@ public class BusWatch extends Activity
         
         // add a click listener to the button
         okButton.setOnClickListener( new OkButtonClickListener() );
+        
+        // add a listener for the enter event on the text entry box
+        entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );
         
         // set progress spinner to indeterminate and make sure it's off
         progressBar.setIndeterminate(true);

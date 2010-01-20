@@ -17,11 +17,30 @@
         android:layout_below="@id/label"
         android:text="11200" />
         
+    <RelativeLayout
+        android:id="@+id/routepickerzone"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/entry">
+        <RelativeLayout
+            android:id="@+id/progresslayout"
+            android:layout_width="50px"
+            android:layout_height="50px"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true">
+            <ProgressBar
+                android:id="@+id/progressbar"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_below="@id/entry" />
+        </RelativeLayout>
+    </RelativeLayout>
+        
     <TextView
         android:id="@+id/durationlabel"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/entry"
+        android:layout_below="@id/routepickerzone"
         android:text="Keep watch on for x seconds:"/>
         
     <EditText

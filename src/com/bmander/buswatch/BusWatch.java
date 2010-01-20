@@ -17,6 +17,7 @@ public class BusWatch extends Activity
     TextView contentTextView;
     EditText entryEditText;
     EditText durationEditText;
+    ProgressBar progressBar;
     
     OneBusAway oneBusAway;
     
@@ -32,7 +33,7 @@ public class BusWatch extends Activity
         String stopid;
         int period; // milliseconds
         int duration; // milliseconds
-        
+         
         SendTimesToWatchRunner(String stopid, int period, int duration) {
             this.stopid = stopid;
             this.period = period;
@@ -66,7 +67,7 @@ public class BusWatch extends Activity
                 print( e.getMessage() );
             }
         }
-    }
+    }  
     
     class OkButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
@@ -99,6 +100,7 @@ public class BusWatch extends Activity
         contentTextView = (TextView) findViewById(R.id.content);
         entryEditText = (EditText) findViewById(R.id.entry);
         durationEditText = (EditText) findViewById(R.id.durationentry);
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
         
         // create an object to represent the OneBusAway API
         String apikey = this.getString(R.string.apikey);
@@ -107,6 +109,9 @@ public class BusWatch extends Activity
         
         // add a click listener to the button
         okButton.setOnClickListener( new OkButtonClickListener() );
+        
+        // set progress spinner to indeterminate and make sure it's off
+        progressBar.setIndeterminate(true);
     
     }
     

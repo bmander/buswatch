@@ -39,16 +39,16 @@ public class BusWatch extends Activity
     
     String stopId = "";
     
-    SendTimesToWatchRunner currentWatchRunner = null;
+    SendTimesToWatchThread currentWatchRunner = null;
     boolean startButtonToggled = true;
     
-    class SendTimesToWatchRunner extends Thread {
+    class SendTimesToWatchThread extends Thread {
         String stopid;
         int period; // milliseconds
         int duration; // milliseconds
         boolean running;
          
-        SendTimesToWatchRunner(String stopid, int period, int duration) {
+        SendTimesToWatchThread(String stopid, int period, int duration) {
             this.stopid = stopid;
             this.period = period;
             this.duration = duration;
@@ -196,7 +196,7 @@ public class BusWatch extends Activity
                 
                 // start a new watch runner
                 Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
-                currentWatchRunner = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
+                currentWatchRunner = new SendTimesToWatchThread( stopid, TEXTPERIOD, duration );
                 currentWatchRunner.start();
                 
                 setButtonStop();
@@ -221,31 +221,23 @@ public class BusWatch extends Activity
         startButtonToggled = false;
     }
     
-    public void toggleStartButton() {
-        // start
-        if( startButtonToggled ) {
-            setButtonStop();
-        // stop
-        } else {
-            setButtonStart();
+    private void getRoutes() {
+        // get the route id
+        String newStopId = entryEditText.getText().toString();
+    
+        // if this is a different stop id than we already have all locked in
+        if( !stopId.equals(newStopId) ) {
+            stopId = newStopId;
+            (new GetRoutesThread(stopId)).start();
         }
     }
     
     class StopIdFocusChangeListener implements View.OnFocusChangeListener {
         public void onFocusChange (View v, boolean hasFocus) {
-                        
             // if they've progressed to the next dialog box
             if( !hasFocus ) {
-                // get the route id
-                String newStopId = ((TextView)v).getText().toString();
-            
-                // if this is a different stop id than we already have all locked in
-                if( !stopId.equals(newStopId) ) {
-                    stopId = newStopId;
-                    (new GetRoutesThread(stopId)).start();
-                }
+                getRoutes();
             }
-
         }
     }
     

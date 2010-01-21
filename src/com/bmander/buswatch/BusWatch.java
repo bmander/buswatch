@@ -16,8 +16,6 @@ import android.content.Context;
 
 public class BusWatch extends Activity
 {    
-    Button okButton;
-    Button cancelButton;
     TextView contentTextView;
     EditText entryEditText;
     EditText durationEditText;
@@ -67,7 +65,10 @@ public class BusWatch extends Activity
         }
         
         public void run() {
+            // set the state of the thread to running
             this.running = true;
+            
+            // get and display bustimes on watch
             try {
                 // figure out the time at start
                 long timeAtStart = System.currentTimeMillis();
@@ -98,7 +99,16 @@ public class BusWatch extends Activity
             } catch( Exception e ) {
                 print( e.getMessage() );
             }
+            
+            // set the state of he thread to not running
             this.running = false;
+            
+            // toggle the start/stop UI element to show that it's no longer running
+            mHandler.post(new Runnable() {
+                public void run() {
+                    setButtonStart();
+                }
+            });
         }
     }
     
@@ -163,35 +173,6 @@ public class BusWatch extends Activity
         }
     }
     
-    class OkButtonClickListener implements View.OnClickListener {
-        public void onClick(View v) {
-            // get stop id and duration from form input
-            String stopid = entryEditText.getText().toString();
-            int duration = Integer.parseInt( durationEditText.getText().toString() )*MILLISECS_IN_SECS;
-            
-            Log.d( TAG, "run for duration:"+duration );
-            
-            // stop the current watch runner if it's going
-            if( currentWatchRunner != null ) {
-                currentWatchRunner.politeStop();
-            }
-            
-            // start a new watch runner
-            Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
-            currentWatchRunner = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
-            currentWatchRunner.start();
-        }
-    }
-    
-    class CancelButtonClickListener implements View.OnClickListener {
-        public void onClick(View v) {
-            // stop the current watch runner if it's going
-            if( currentWatchRunner != null ) {
-                currentWatchRunner.politeStop();
-            }
-        }
-    }
-    
     class StartButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
             // start
@@ -212,17 +193,35 @@ public class BusWatch extends Activity
                 currentWatchRunner = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
                 currentWatchRunner.start();
                 
-                startButton.setImageResource( R.drawable.stopsmall );
-                startButtonToggled = false;
+                setButtonStop();
             // stop
             } else {
                 if( currentWatchRunner != null ) {
                     currentWatchRunner.politeStop();
                 }
                 
-                startButton.setImageResource( R.drawable.startsmall );
-                startButtonToggled = true;
+                // the watch transmission runner will turn the toggle button off itself
             }
+        }
+    }
+    
+    public void setButtonStart() {
+        startButton.setImageResource( R.drawable.startsmall );
+        startButtonToggled = true;
+    }
+    
+    public void setButtonStop() {
+        startButton.setImageResource( R.drawable.stopsmall );
+        startButtonToggled = false;
+    }
+    
+    public void toggleStartButton() {
+        // start
+        if( startButtonToggled ) {
+            setButtonStop();
+        // stop
+        } else {
+            setButtonStart();
         }
     }
     
@@ -264,12 +263,6 @@ public class BusWatch extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        // fetch elements defined in XML layout so we can manipulate them
-        Log.i( TAG, "id: "+R.id.ok );
-        Log.i( TAG, "object: "+ findViewById(R.id.ok) );
-        
-        okButton = (Button) findViewById(R.id.ok);
-        cancelButton = (Button) findViewById(R.id.cancel);
         contentTextView = (TextView) findViewById(R.id.content);
         entryEditText = (EditText) findViewById(R.id.entry);
         durationEditText = (EditText) findViewById(R.id.durationentry);
@@ -281,12 +274,6 @@ public class BusWatch extends Activity
         String apikey = this.getString(R.string.apikey);
         String oba_api_domain = this.getString(R.string.onebusaway_api_domain);
         oneBusAway = new OneBusAway(oba_api_domain, apikey);
-        
-        // add a click listener to the ok button
-        okButton.setOnClickListener( new OkButtonClickListener() );
-        
-        // add a click listener to the cancel button
-        cancelButton.setOnClickListener( new CancelButtonClickListener() );
         
         // add a click listener on the startstop toggle
         startButton.setOnClickListener( new StartButtonClickListener() );

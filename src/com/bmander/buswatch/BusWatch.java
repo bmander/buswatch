@@ -16,11 +16,10 @@ import android.content.Context;
 
 public class BusWatch extends Activity
 {    
-    TextView contentTextView;
     EditText entryEditText;
     ProgressBar progressBar;
-    LinearLayout routesLinear;
-    ArrayList<CheckBox> routeSelectors = new ArrayList<CheckBox>();
+    RadioGroup routesLinear;
+    ArrayList<RadioButton> routeSelectors = new ArrayList<RadioButton>();
     Spinner durationSpinner;
     ImageButton startButton;
     
@@ -154,12 +153,10 @@ public class BusWatch extends Activity
                             OneBusAway.Route route = routes.get(i);
                             
                             // put a checkbox on the right, pre-filled out
-                            CheckBox checkBox = new CheckBox(busWatchContext);
-                            checkBox.setChecked(true);
-                            checkBox.setText( route.getShortName()+" "+route.getDescription() );
-                            routesLinear.addView( checkBox );
-                            routeSelectors.add( checkBox );
-                    
+                            RadioButton radioBox = new RadioButton(busWatchContext);
+                            radioBox.setText( route.getShortName()+" "+route.getDescription() );
+                            routesLinear.addView( radioBox );
+                            routeSelectors.add( radioBox );
                         }
                     }
                 });
@@ -216,10 +213,10 @@ public class BusWatch extends Activity
         startButtonToggled = true;
     }
     
-    public void setButtonStop() {
+    public void setButtonStop() { 
         startButton.setImageResource( R.drawable.stopsmall );
         startButtonToggled = false;
-    }
+    } 
     
     private void getRoutes() {
         // get the route id
@@ -238,6 +235,15 @@ public class BusWatch extends Activity
             if( !hasFocus ) {
                 getRoutes();
             }
+        }
+    }
+    
+    class StopIdActionListener implements TextView.OnEditorActionListener {
+        public boolean onEditorAction( TextView v, int actionId, KeyEvent event ) {
+            if( actionId == EditorInfo.IME_ACTION_DONE ) {
+                getRoutes();
+            }
+            return false;
         }
     }
     
@@ -261,10 +267,9 @@ public class BusWatch extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        contentTextView = (TextView) findViewById(R.id.content);
         entryEditText = (EditText) findViewById(R.id.entry);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
-        routesLinear = (LinearLayout) findViewById(R.id.routes);
+        routesLinear = (RadioGroup) findViewById(R.id.routes);
         startButton = (ImageButton) findViewById(R.id.startstopbutton);
         
         // create an object to represent the OneBusAway API
@@ -277,6 +282,7 @@ public class BusWatch extends Activity
         
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );
+        entryEditText.setOnEditorActionListener( new StopIdActionListener() );
         
         // set progress spinner to indeterminate
         progressBar.setIndeterminate(true);

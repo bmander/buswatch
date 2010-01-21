@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/label"
@@ -14,62 +15,51 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="@android:drawable/editbox_background"
-        android:layout_below="@id/label"
         android:singleLine="true"
-        android:numeric="integer"
-        android:text="11200" />
+        android:numeric="integer"/>
         
-    <RelativeLayout
-        android:id="@+id/routepickerzone"
+    <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/entry">
-        <ProgressBar
-            android:id="@+id/progressbar"
-            android:layout_width="50px"
-            android:layout_height="50px"
-            android:layout_below="@id/entry"
-            android:visibility="invisible"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"/>
-        <LinearLayout
-            android:id="@+id/routes"
-            android:orientation="vertical"
+        android:layout_height="250px">
+        <RelativeLayout
+            android:id="@+id/routepickerzone"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
-        </LinearLayout>
-    </RelativeLayout>
-        
-    <ImageButton
-        android:id="@+id/startstopbutton"
-        android:layout_width="75px"
-        android:layout_height="75px"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:src="@drawable/startsmall" />  
+            >
+            <ProgressBar
+                android:id="@+id/progressbar"
+                android:layout_width="50px"
+                android:layout_height="50px"
+                android:visibility="invisible"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"/>
+            <RadioGroup
+                android:id="@+id/routes"
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+            </RadioGroup>
+        </RelativeLayout>
+    </ScrollView>
+    
+    <TextView
+        android:id="@+id/durationlabel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Keep watch on for:" />
         
     <Spinner 
         android:id="@+id/durationspinner"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:drawSelectorOnTop="true"
-        android:layout_above="@id/startstopbutton"
-        android:prompt="@string/duration_prompt" />
+        android:prompt="@string/duration_prompt"/>
         
-    <TextView
-        android:id="@+id/durationlabel"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/durationspinner"
-        android:text="Keep watch on for:"/>
+    <ImageButton
+        android:id="@+id/startstopbutton"
+        android:layout_gravity="right|bottom"
+        android:layout_width="75px"
+        android:layout_height="75px"
+        android:src="@drawable/startsmall"/>  
         
-    <TextView
-        android:id="@+id/content"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/ok"/>
-        
-
-
-</RelativeLayout>
+</LinearLayout>

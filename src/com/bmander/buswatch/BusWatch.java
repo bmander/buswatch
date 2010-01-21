@@ -97,7 +97,12 @@ public class BusWatch extends Activity
                     }
                 }
             } catch( Exception e ) {
-                print( e.getMessage() );
+                final Exception fe = e;
+                mHandler.post(new Runnable() {
+                    public void run() {
+                        print( fe.getMessage() );
+                    }
+                });
             }
             
             // set the state of he thread to not running

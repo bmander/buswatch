@@ -89,7 +89,7 @@ public class BusWatch extends Activity
                         OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
                         
                         // text the watch
-                        textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString() );
+                        textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString(System.currentTimeMillis()) );
                         
                         // wait a bit to print the next one
                         this.sleep(period);

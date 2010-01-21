@@ -19,11 +19,9 @@ public class OneBusAway {
         long NO_PREDICTION_TIME=0;
         
         JSONObject content;
-        long timeAtFetch;
         
-        ArrivalPrediction(JSONObject content, long timeAtFetch) {
+        ArrivalPrediction(JSONObject content) {
             this.content = content;
-            this.timeAtFetch = timeAtFetch;
         }
         
         String getShortName() {
@@ -58,18 +56,18 @@ public class OneBusAway {
             }
         }
         
-        long getETA() {
+        long getETA(long wrtTime) {
             
             // figure out the arrival time
             if(getPredictedDepartureTime() != NO_PREDICTION_TIME) {
-                return getPredictedDepartureTime() - timeAtFetch;
+                return getPredictedDepartureTime() - wrtTime;
             } else {
-                return getScheduledArrivalTime() - timeAtFetch;
+                return getScheduledArrivalTime() - wrtTime;
             }
         }
         
-        String getETAString() {
-            long eta = getETA();
+        String getETAString(long wrtTime) {
+            long eta = getETA(wrtTime);
             
             // make it human-readable
             long minutes = eta/60000;
@@ -160,8 +158,6 @@ public class OneBusAway {
      * Get an ArrayList of bustimes for a given stop_id and api_key
      */
     public ArrayList<ArrivalPrediction> get_bustimes(String stop_id) throws JSONException, MalformedURLException, IOException {
-        // get the time that the request was made - necessary for calculating ETAs
-        long timeAtFetch = System.currentTimeMillis();
         
         // construct HTTP request and make it
         String url_string = "http://"+api_domain+ARRIVALS_DEPARTURES_PATH+"/1_"+stop_id+".json?key="+api_key;
@@ -172,7 +168,7 @@ public class OneBusAway {
         
         ArrayList<ArrivalPrediction> ret = new ArrayList<ArrivalPrediction>();
         for(int i=0; i<json_arrivaldepartures.length(); i++) {
-            ret.add( new ArrivalPrediction( json_arrivaldepartures.getJSONObject( i ), timeAtFetch ) );
+            ret.add( new ArrivalPrediction( json_arrivaldepartures.getJSONObject( i ) ) );
         }
 
         return ret;

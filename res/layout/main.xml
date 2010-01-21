@@ -87,5 +87,13 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ok"/>
+        
+    <ImageButton
+        android:id="@+id/startstopbutton"
+        android:layout_width="75px"
+        android:layout_height="75px"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/startsmall" />  
 
 </RelativeLayout>

@@ -25,6 +25,7 @@ public class BusWatch extends Activity
     LinearLayout routesLinear;
     ArrayList<CheckBox> routeSelectors = new ArrayList<CheckBox>();
     Spinner durationSpinner;
+    ImageButton startButton;
     
     OneBusAway oneBusAway;
     
@@ -42,6 +43,7 @@ public class BusWatch extends Activity
     String stopId = "";
     
     SendTimesToWatchRunner currentWatchRunner = null;
+    boolean startButtonToggled = true;
     
     class SendTimesToWatchRunner extends Thread {
         String stopid;
@@ -54,6 +56,10 @@ public class BusWatch extends Activity
             this.period = period;
             this.duration = duration;
             this.running = false;
+        }
+        
+        public boolean isRunning() {
+            return this.running;
         }
         
         public void politeStop() {
@@ -75,6 +81,11 @@ public class BusWatch extends Activity
                     
                     // show each prediction on the watch, at a regular interval
                     for(int i=0; i<bustimes.size(); i++) {
+                        // if the stop signal has been thrown, exit the loop
+                        if(!this.running) {
+                            break;
+                        }
+                        
                         OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
                         
                         // text the watch
@@ -87,6 +98,7 @@ public class BusWatch extends Activity
             } catch( Exception e ) {
                 print( e.getMessage() );
             }
+            this.running = false;
         }
     }
     
@@ -180,6 +192,40 @@ public class BusWatch extends Activity
         }
     }
     
+    class StartButtonClickListener implements View.OnClickListener {
+        public void onClick(View v) {
+            // start
+            if( startButtonToggled ) {
+                // get stop id and duration from form input
+                String stopid = entryEditText.getText().toString();
+                int duration = Integer.parseInt( durationEditText.getText().toString() )*MILLISECS_IN_SECS;
+                
+                Log.d( TAG, "run for duration:"+duration );
+                
+                // stop the current watch runner if it's going
+                if( currentWatchRunner != null ) {
+                    currentWatchRunner.politeStop();
+                }
+                
+                // start a new watch runner
+                Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
+                currentWatchRunner = new SendTimesToWatchRunner( stopid, TEXTPERIOD, duration );
+                currentWatchRunner.start();
+                
+                startButton.setImageResource( R.drawable.stopsmall );
+                startButtonToggled = false;
+            // stop
+            } else {
+                if( currentWatchRunner != null ) {
+                    currentWatchRunner.politeStop();
+                }
+                
+                startButton.setImageResource( R.drawable.startsmall );
+                startButtonToggled = true;
+            }
+        }
+    }
+    
     class StopIdFocusChangeListener implements View.OnFocusChangeListener {
         public void onFocusChange (View v, boolean hasFocus) {
                         
@@ -229,6 +275,7 @@ public class BusWatch extends Activity
         durationEditText = (EditText) findViewById(R.id.durationentry);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         routesLinear = (LinearLayout) findViewById(R.id.routes);
+        startButton = (ImageButton) findViewById(R.id.startstopbutton);
         
         // create an object to represent the OneBusAway API
         String apikey = this.getString(R.string.apikey);
@@ -240,6 +287,9 @@ public class BusWatch extends Activity
         
         // add a click listener to the cancel button
         cancelButton.setOnClickListener( new CancelButtonClickListener() );
+        
+        // add a click listener on the startstop toggle
+        startButton.setOnClickListener( new StartButtonClickListener() );
         
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );

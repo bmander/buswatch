@@ -18,7 +18,6 @@ public class BusWatch extends Activity
 {    
     TextView contentTextView;
     EditText entryEditText;
-    EditText durationEditText;
     ProgressBar progressBar;
     LinearLayout routesLinear;
     ArrayList<CheckBox> routeSelectors = new ArrayList<CheckBox>();
@@ -184,7 +183,9 @@ public class BusWatch extends Activity
             if( startButtonToggled ) {
                 // get stop id and duration from form input
                 String stopid = entryEditText.getText().toString();
-                int duration = Integer.parseInt( durationEditText.getText().toString() )*MILLISECS_IN_SECS;
+                
+                DurationSpinnerItem dsi = (DurationSpinnerItem)durationSpinner.getSelectedItem();
+                int duration = dsi.duration*SECS_IN_MINUTE*MILLISECS_IN_SECS;
                 
                 Log.d( TAG, "run for duration:"+duration );
                 
@@ -264,13 +265,12 @@ public class BusWatch extends Activity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-        // call super, use XML layout
+        // call super, use XML layout 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
         contentTextView = (TextView) findViewById(R.id.content);
         entryEditText = (EditText) findViewById(R.id.entry);
-        durationEditText = (EditText) findViewById(R.id.durationentry);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         routesLinear = (LinearLayout) findViewById(R.id.routes);
         startButton = (ImageButton) findViewById(R.id.startstopbutton);

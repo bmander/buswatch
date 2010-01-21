@@ -41,36 +41,6 @@
         </LinearLayout>
     </RelativeLayout>
         
-    <TextView
-        android:id="@+id/durationlabel"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/routepickerzone"
-        android:text="Keep watch on for x seconds:"/>
-        
-    <EditText
-        android:id="@+id/durationentry"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/editbox_background"
-        android:layout_below="@id/durationlabel"
-        android:text="5" />
-        
-    <Spinner 
-        android:id="@+id/durationspinner"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:drawSelectorOnTop="true"
-        android:layout_below="@id/durationentry"
-        android:prompt="@string/duration_prompt"
-    />
-        
-    <TextView
-        android:id="@+id/content"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/ok"/>
-        
     <ImageButton
         android:id="@+id/startstopbutton"
         android:layout_width="75px"
@@ -78,5 +48,28 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:src="@drawable/startsmall" />  
+        
+    <Spinner 
+        android:id="@+id/durationspinner"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:drawSelectorOnTop="true"
+        android:layout_above="@id/startstopbutton"
+        android:prompt="@string/duration_prompt" />
+        
+    <TextView
+        android:id="@+id/durationlabel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/durationspinner"
+        android:text="Keep watch on for:"/>
+        
+    <TextView
+        android:id="@+id/content"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ok"/>
+        
+
 
 </RelativeLayout>

@@ -13,6 +13,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name="SendTimesToWatchService" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
+    
 </manifest> 

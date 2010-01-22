@@ -296,6 +296,10 @@ public class BusWatch extends Activity
         }
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         durationSpinner.setAdapter(adapter);
+        
+        // debug play - starting services
+        startService( new Intent( this, SendTimesToWatchService.class ) );
+        stopService( new Intent( this, SendTimesToWatchService.class ) );
     }
     
     /*

@@ -185,9 +185,11 @@ public class BusWatch extends Activity
     
     public class SendTimesToWatchServiceConnection implements ServiceConnection {
         public void onServiceConnected(ComponentName name, IBinder service) {
+            // when the service starts, set the toggle to show a 'stop' symbol
             setButtonStop();
         }
         public void onServiceDisconnected(ComponentName name) {
+            // when the service stops, set the toggle to show a 'start' symbol
             setButtonStart();
         }
     }
@@ -196,46 +198,35 @@ public class BusWatch extends Activity
         public void onClick(View v) {
             // start
             if( startButtonToggled ) {
-                // get stop id and duration from form input
+                // get stop id from form input
                 String stopid = entryEditText.getText().toString();
                 
+                // get duration from form input
                 DurationSpinnerItem dsi = (DurationSpinnerItem)durationSpinner.getSelectedItem();
                 int duration = dsi.duration*SECS_IN_MINUTE*MILLISECS_IN_SECS;
                 
+                // send a log message
                 Log.d( TAG, "run for duration:"+duration );
                 
-                // stop the current watch runner if it's going
-                //if( currentWatchRunner != null ) {
-                //    currentWatchRunner.politeStop();
-                //}
-                
-                // start a new watch runner
-                //Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
-                //currentWatchRunner = new SendTimesToWatchThread( stopid, TEXTPERIOD, duration );
-                //currentWatchRunner.start();
-                
-                // start new watch service
+                // create an intent for a new watch-transmitter service
                 Intent startWatchTimesIntent = new Intent( busWatchContext, SendTimesToWatchService.class );
                 startWatchTimesIntent.putExtra( "stopId", stopid );
                 startWatchTimesIntent.putExtra( "obaApiDomain", obaApiDomain );
                 startWatchTimesIntent.putExtra( "apiKey", apiKey );
                 startWatchTimesIntent.putExtra( "period", TEXTPERIOD );
                 startWatchTimesIntent.putExtra( "duration", duration );
+                
                 // bind to the service so we can pop the toggle when it dies
                 bindService( startWatchTimesIntent, 
                              new SendTimesToWatchServiceConnection(), 
                              0 );
+                             
+                // start the service
                 startService( startWatchTimesIntent );
                 
-                setButtonStop();
             // stop
-            } else {
-                //if( currentWatchRunner != null ) {
-                //    currentWatchRunner.politeStop();
-                //}
-                
+            } else {                
                 stopService( new Intent( busWatchContext, SendTimesToWatchService.class ) );
-                // the watch transmission runner will turn the toggle button off itself
             }
         }
     }

@@ -13,6 +13,11 @@ import java.util.*;
 import android.view.inputmethod.EditorInfo;
 import android.os.Handler;
 import android.content.Context;
+import android.app.Service;
+import android.os.IBinder;
+import android.content.ServiceConnection;
+import android.content.ComponentName;
+
 
 public class BusWatch extends Activity
 {    
@@ -40,6 +45,10 @@ public class BusWatch extends Activity
     
     SendTimesToWatchThread currentWatchRunner = null;
     boolean startButtonToggled = true;
+    
+    // onebusaway global variables
+    String obaApiDomain;
+    String apiKey;
     
     class SendTimesToWatchThread extends Thread {
         String stopid;
@@ -174,6 +183,15 @@ public class BusWatch extends Activity
         }
     }
     
+    public class SendTimesToWatchServiceConnection implements ServiceConnection {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            setButtonStop();
+        }
+        public void onServiceDisconnected(ComponentName name) {
+            setButtonStart();
+        }
+    }
+    
     class StartButtonClickListener implements View.OnClickListener {
         public void onClick(View v) {
             // start
@@ -187,22 +205,36 @@ public class BusWatch extends Activity
                 Log.d( TAG, "run for duration:"+duration );
                 
                 // stop the current watch runner if it's going
-                if( currentWatchRunner != null ) {
-                    currentWatchRunner.politeStop();
-                }
+                //if( currentWatchRunner != null ) {
+                //    currentWatchRunner.politeStop();
+                //}
                 
                 // start a new watch runner
-                Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
-                currentWatchRunner = new SendTimesToWatchThread( stopid, TEXTPERIOD, duration );
-                currentWatchRunner.start();
+                //Log.i( TAG, "launching thread for stop_id:"+stopid+" textperiod:"+TEXTPERIOD+"duration:"+duration );
+                //currentWatchRunner = new SendTimesToWatchThread( stopid, TEXTPERIOD, duration );
+                //currentWatchRunner.start();
+                
+                // start new watch service
+                Intent startWatchTimesIntent = new Intent( busWatchContext, SendTimesToWatchService.class );
+                startWatchTimesIntent.putExtra( "stopId", stopid );
+                startWatchTimesIntent.putExtra( "obaApiDomain", obaApiDomain );
+                startWatchTimesIntent.putExtra( "apiKey", apiKey );
+                startWatchTimesIntent.putExtra( "period", TEXTPERIOD );
+                startWatchTimesIntent.putExtra( "duration", duration );
+                // bind to the service so we can pop the toggle when it dies
+                bindService( startWatchTimesIntent, 
+                             new SendTimesToWatchServiceConnection(), 
+                             0 );
+                startService( startWatchTimesIntent );
                 
                 setButtonStop();
             // stop
             } else {
-                if( currentWatchRunner != null ) {
-                    currentWatchRunner.politeStop();
-                }
+                //if( currentWatchRunner != null ) {
+                //    currentWatchRunner.politeStop();
+                //}
                 
+                stopService( new Intent( busWatchContext, SendTimesToWatchService.class ) );
                 // the watch transmission runner will turn the toggle button off itself
             }
         }
@@ -273,9 +305,9 @@ public class BusWatch extends Activity
         startButton = (ImageButton) findViewById(R.id.startstopbutton);
         
         // create an object to represent the OneBusAway API
-        String apikey = this.getString(R.string.apikey);
-        String oba_api_domain = this.getString(R.string.onebusaway_api_domain);
-        oneBusAway = new OneBusAway(oba_api_domain, apikey);
+        apiKey = this.getString(R.string.apikey);
+        obaApiDomain = this.getString(R.string.onebusaway_api_domain);
+        oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
         // add a click listener on the startstop toggle
         startButton.setOnClickListener( new StartButtonClickListener() );
@@ -297,9 +329,6 @@ public class BusWatch extends Activity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         durationSpinner.setAdapter(adapter);
         
-        // debug play - starting services
-        startService( new Intent( this, SendTimesToWatchService.class ) );
-        stopService( new Intent( this, SendTimesToWatchService.class ) );
     }
     
     /*

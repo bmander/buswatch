@@ -159,7 +159,8 @@ public class SendTimesToWatchService extends Service {
         String apiKey = intent.getExtras().getString( "apiKey" );
         String obaApiDomain = intent.getExtras().getString( "obaApiDomain" );
         String stopid = intent.getExtras().getString( "stopId" );
-        int period = intent.getExtras().getInt( "period" );
+        int watchPeriod = intent.getExtras().getInt( "watchPeriod" );
+        int apiPeriod = intent.getExtras().getInt( "apiPeriod" );
         int duration = intent.getExtras().getInt( "duration" );
         
         // log service parameters
@@ -167,18 +168,19 @@ public class SendTimesToWatchService extends Service {
         Log.i( TAG, "stopid: "+stopid );
         Log.i( TAG, "apiKey: "+apiKey );
         Log.i( TAG, "obaApiDomain: "+obaApiDomain );
-        Log.i( TAG, "period: "+period );
+        Log.i( TAG, "watchPeriod: "+watchPeriod );
+        Log.i( TAG, "apiPeriod: "+apiPeriod );
         Log.i( TAG, "duration: "+duration );
         
         // create the OneBusAway API
         oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
         // start the thread that does all the work
-        threadSoul = new SendTimesToWatchThread(stopid, period);
+        threadSoul = new SendTimesToWatchThread(stopid, watchPeriod);
         threadSoul.start();
         
         // start the times fetcher thread
-        getTimesFromApiThread = new GetTimesFromApiThread( stopid, period );
+        getTimesFromApiThread = new GetTimesFromApiThread( stopid, apiPeriod );
         getTimesFromApiThread.start();
         
         // start the killer timer

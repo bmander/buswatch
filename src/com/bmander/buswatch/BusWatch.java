@@ -36,6 +36,7 @@ public class BusWatch extends Activity
     int MILLISECS_IN_SECS = 1000;
     
     int TEXTPERIOD = 4000;
+    int APIPERIOD = 10000;
     
     private Handler mHandler = new Handler();
 
@@ -213,7 +214,8 @@ public class BusWatch extends Activity
                 startWatchTimesIntent.putExtra( "stopId", stopid );
                 startWatchTimesIntent.putExtra( "obaApiDomain", obaApiDomain );
                 startWatchTimesIntent.putExtra( "apiKey", apiKey );
-                startWatchTimesIntent.putExtra( "period", TEXTPERIOD );
+                startWatchTimesIntent.putExtra( "watchPeriod", TEXTPERIOD );
+                startWatchTimesIntent.putExtra( "apiPeriod", APIPERIOD );
                 startWatchTimesIntent.putExtra( "duration", duration );
                 
                 // bind to the service so we can pop the toggle when it dies

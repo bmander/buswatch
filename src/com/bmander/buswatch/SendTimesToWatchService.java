@@ -13,6 +13,34 @@ public class SendTimesToWatchService extends Service {
     
     SendTimesToWatchService parentThis = this;
     
+    SendTimesToWatchThread threadSoul = null;
+    ServiceKillerTimer serviceKillerTimer = null;
+    
+    /*
+     * The ServiceKillerTimer comes alive at the start of the service, waits for a while, and then kills the service off
+     */
+    class ServiceKillerTimer extends Thread {
+        int duration;
+        
+        ServiceKillerTimer(int duration) {
+            this.duration = duration;
+        }
+        
+        public void run() {
+            try {
+                this.sleep(duration);
+            } catch( InterruptedException ex ) {
+                Log.i( TAG, ex.getMessage() );
+            }
+            
+            if(threadSoul != null) {
+                threadSoul.politeStop();
+            }
+            
+            Log.i( TAG, "killer timer shutting everything down now" );
+        }
+    }
+    
     class SendTimesToWatchThread extends Thread {
         String stopid;
         int period; // milliseconds
@@ -40,12 +68,9 @@ public class SendTimesToWatchService extends Service {
             
             // get and display bustimes on watch
             try {
-                // figure out the time at start
-                long timeAtStart = System.currentTimeMillis();
                 
-                // repeat for duration
-                while(this.running && System.currentTimeMillis() < timeAtStart+duration) {
-                    Log.d( TAG, "current time:"+System.currentTimeMillis()+" end time:"+(timeAtStart+duration) );
+                // repeat until something kills this thread - like the killer timer
+                while(this.running) {
                 
                     // get arrivaldeparture predictions
                     ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
@@ -78,33 +103,39 @@ public class SendTimesToWatchService extends Service {
         }
     }
     
-    SendTimesToWatchThread threadSoul = null;
-    
-    // return an empty binder, such that the bound application can see when the service starts and stops
+    // return an empty binder, so that the bound activity can see when the service starts and stops
     public IBinder onBind(Intent intent) {
         return new Binder();
     }
     
     public int onStartCommand( Intent intent, int flags, int startId ) {
-        Log.i( TAG, "You started a service" );
-        
+        // get service parameters from the intent
         String apiKey = intent.getExtras().getString( "apiKey" );
         String obaApiDomain = intent.getExtras().getString( "obaApiDomain" );
         String stopid = intent.getExtras().getString( "stopId" );
         int period = intent.getExtras().getInt( "period" );
         int duration = intent.getExtras().getInt( "duration" );
         
+        // log service parameters
+        Log.i( TAG, TAG+" started" );
         Log.i( TAG, "stopid: "+stopid );
         Log.i( TAG, "apiKey: "+apiKey );
         Log.i( TAG, "obaApiDomain: "+obaApiDomain );
         Log.i( TAG, "period: "+period );
         Log.i( TAG, "duration: "+duration );
         
+        // create the OneBusAway API
         oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
+        // start the thread that does all the work
         threadSoul = new SendTimesToWatchThread(stopid, period, duration);
         threadSoul.start();
         
+        // start the killer timer
+        serviceKillerTimer = new ServiceKillerTimer( duration );
+        serviceKillerTimer.start();
+        
+        // inform the calling Activity that this service should be killed just as soon as possible
         return START_STICKY;
     }
     
@@ -112,7 +143,7 @@ public class SendTimesToWatchService extends Service {
         if( threadSoul != null ) {
             threadSoul.politeStop();
         }
-        Log.i( TAG, "You destroyed the service" );
+        Log.i( TAG, TAG+" stopped" );
     }
     
     /*

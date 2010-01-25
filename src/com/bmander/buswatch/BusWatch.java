@@ -44,86 +44,11 @@ public class BusWatch extends Activity
     
     String stopId = "";
     
-    SendTimesToWatchThread currentWatchRunner = null;
     boolean startButtonToggled = true;
     
     // onebusaway global variables
     String obaApiDomain;
     String apiKey;
-    
-    class SendTimesToWatchThread extends Thread {
-        String stopid;
-        int period; // milliseconds
-        int duration; // milliseconds
-        boolean running;
-         
-        SendTimesToWatchThread(String stopid, int period, int duration) {
-            this.stopid = stopid;
-            this.period = period;
-            this.duration = duration;
-            this.running = false;
-        }
-        
-        public boolean isRunning() {
-            return this.running;
-        }
-        
-        public void politeStop() {
-            this.running = false;
-        }
-        
-        public void run() {
-            // set the state of the thread to running
-            this.running = true;
-            
-            // get and display bustimes on watch
-            try {
-                // figure out the time at start
-                long timeAtStart = System.currentTimeMillis();
-                
-                // repeat for duration
-                while(this.running && System.currentTimeMillis() < timeAtStart+duration) {
-                    Log.d( TAG, "current time:"+System.currentTimeMillis()+" end time:"+(timeAtStart+duration) );
-                
-                    // get arrivaldeparture predictions
-                    ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
-                    
-                    // show each prediction on the watch, at a regular interval
-                    for(int i=0; i<bustimes.size(); i++) {
-                        // if the stop signal has been thrown, exit the loop
-                        if(!this.running) {
-                            break;
-                        }
-                        
-                        OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
-                        
-                        // text the watch
-                        textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString(System.currentTimeMillis()) );
-                        
-                        // wait a bit to print the next one
-                        this.sleep(period);
-                    }
-                }
-            } catch( Exception e ) {
-                final Exception fe = e;
-                mHandler.post(new Runnable() {
-                    public void run() {
-                        print( fe.getMessage() );
-                    }
-                });
-            }
-            
-            // set the state of he thread to not running
-            this.running = false;
-            
-            // toggle the start/stop UI element to show that it's no longer running
-            mHandler.post(new Runnable() {
-                public void run() {
-                    setButtonStart();
-                }
-            });
-        }
-    }
     
     class GetRoutesThread extends Thread {
         String routeId;

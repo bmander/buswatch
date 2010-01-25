@@ -13,8 +13,11 @@ public class SendTimesToWatchService extends Service {
     
     SendTimesToWatchService parentThis = this;
     
+    ArrayList<OneBusAway.ArrivalPrediction> bustimes = null;
+    
     SendTimesToWatchThread threadSoul = null;
     ServiceKillerTimer serviceKillerTimer = null;
+    GetTimesFromApiThread getTimesFromApiThread = null;
     
     /*
      * The ServiceKillerTimer comes alive at the start of the service, waits for a while, and then kills the service off
@@ -33,24 +36,23 @@ public class SendTimesToWatchService extends Service {
                 Log.i( TAG, ex.getMessage() );
             }
             
-            if(threadSoul != null) {
-                threadSoul.politeStop();
-            }
+            parentThis.stopSelf();
             
             Log.i( TAG, "killer timer shutting everything down now" );
         }
     }
     
-    class SendTimesToWatchThread extends Thread {
+    /*
+     * A thread for fetching times from the OBA API
+     */
+    class GetTimesFromApiThread extends Thread {
         String stopid;
         int period; // milliseconds
-        int duration; // milliseconds
         boolean running;
          
-        SendTimesToWatchThread(String stopid, int period, int duration) {
+        GetTimesFromApiThread(String stopid, int period) {
             this.stopid = stopid;
             this.period = period;
-            this.duration = duration;
             this.running = false;
         }
         
@@ -73,23 +75,9 @@ public class SendTimesToWatchService extends Service {
                 while(this.running) {
                 
                     // get arrivaldeparture predictions
-                    ArrayList<OneBusAway.ArrivalPrediction> bustimes = oneBusAway.get_bustimes( stopid );
+                    bustimes = oneBusAway.get_bustimes( stopid );
                     
-                    // show each prediction on the watch, at a regular interval
-                    for(int i=0; i<bustimes.size(); i++) {
-                        // if the stop signal has been thrown, exit the loop
-                        if(!this.running) {
-                            break;
-                        }
-                        
-                        OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
-                        
-                        // text the watch
-                        textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString(System.currentTimeMillis()) );
-                        
-                        // wait a bit to print the next one
-                        this.sleep(period);
-                    }
+                    this.sleep( period );
                 }
             } catch( Exception e ) {
                 Log.e( TAG, e.getMessage() );
@@ -98,8 +86,66 @@ public class SendTimesToWatchService extends Service {
             // set the state of he thread to not running
             this.running = false;
             
-            // if stopped, kill the parent service
-            parentThis.stopSelf();
+        }
+    }
+    
+    /*
+     * A thread for sending times to the watch
+     */
+    class SendTimesToWatchThread extends Thread {
+        String stopid;
+        int period; // milliseconds
+        boolean running;
+         
+        SendTimesToWatchThread(String stopid, int period) {
+            this.stopid = stopid;
+            this.period = period;
+            this.running = false;
+        }
+        
+        public boolean isRunning() {
+            return this.running;
+        }
+        
+        public void politeStop() {
+            this.running = false;
+        }
+        
+        public void run() {
+            // set the state of the thread to running
+            this.running = true;
+            
+            // get and display bustimes on watch
+            try {
+                
+                // repeat until something kills this thread - like the killer timer
+                while(this.running) {
+                    if( bustimes != null ) {
+                        // show each prediction on the watch, at a regular interval
+                        for(int i=0; i<bustimes.size(); i++) {
+                            // if the stop signal has been thrown, exit the loop
+                            if(!this.running) {
+                                break;
+                            }
+                            
+                            OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
+                            
+                            // text the watch
+                            textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString(System.currentTimeMillis()) );
+                            
+                            // wait a bit to print the next one
+                            this.sleep(period);
+                        }
+                    }
+                    this.sleep(500);
+                }
+            } catch( Exception e ) {
+                Log.e( TAG, e.getMessage() );
+            }
+            
+            // set the state of he thread to not running
+            this.running = false;
+            
         }
     }
     
@@ -128,8 +174,12 @@ public class SendTimesToWatchService extends Service {
         oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
         // start the thread that does all the work
-        threadSoul = new SendTimesToWatchThread(stopid, period, duration);
+        threadSoul = new SendTimesToWatchThread(stopid, period);
         threadSoul.start();
+        
+        // start the times fetcher thread
+        getTimesFromApiThread = new GetTimesFromApiThread( stopid, period );
+        getTimesFromApiThread.start();
         
         // start the killer timer
         serviceKillerTimer = new ServiceKillerTimer( duration );
@@ -142,6 +192,9 @@ public class SendTimesToWatchService extends Service {
     public void onDestroy() {
         if( threadSoul != null ) {
             threadSoul.politeStop();
+        }
+        if( getTimesFromApiThread != null ) {
+            getTimesFromApiThread.politeStop();
         }
         Log.i( TAG, TAG+" stopped" );
     }

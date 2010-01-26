@@ -36,9 +36,8 @@ public class SendTimesToWatchService extends Service {
                 Log.i( TAG, ex.getMessage() );
             }
             
-            parentThis.stopSelf();
-            
             Log.i( TAG, "killer timer shutting everything down now" );
+            parentThis.stopSelf();
         }
     }
     
@@ -188,7 +187,7 @@ public class SendTimesToWatchService extends Service {
         serviceKillerTimer.start();
         
         // inform the calling Activity that this service should be killed just as soon as possible
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
     
     public void onDestroy() {

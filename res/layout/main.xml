@@ -20,7 +20,7 @@
         
     <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="250px">
+        android:layout_height="200px">
         <RelativeLayout
             android:id="@+id/routepickerzone"
             android:layout_width="fill_parent"
@@ -55,11 +55,11 @@
         android:drawSelectorOnTop="true"
         android:prompt="@string/duration_prompt"/>
         
-    <ImageButton
-        android:id="@+id/startstopbutton"
-        android:layout_gravity="right|bottom"
-        android:layout_width="75px"
-        android:layout_height="75px"
-        android:src="@drawable/startsmall"/>  
+    <ToggleButton android:id="@+id/togglebutton"
+        android:layout_width="110px"
+        android:layout_height="60px" 
+        android:textOn="STOP WATCH"
+        android:textOff="START WATCH"
+        android:layout_gravity="center|bottom"/>
         
 </LinearLayout>

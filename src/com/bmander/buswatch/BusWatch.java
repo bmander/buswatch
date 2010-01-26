@@ -26,7 +26,7 @@ public class BusWatch extends Activity
     RadioGroup routesLinear;
     ArrayList<RadioButton> routeSelectors = new ArrayList<RadioButton>();
     Spinner durationSpinner;
-    ImageButton startButton;
+    ToggleButton startButton;
     
     OneBusAway oneBusAway;
     
@@ -43,9 +43,7 @@ public class BusWatch extends Activity
     Context busWatchContext = this;
     
     String stopId = "";
-    
-    boolean startButtonToggled = true;
-    
+        
     // onebusaway global variables
     String obaApiDomain;
     String apiKey;
@@ -112,18 +110,18 @@ public class BusWatch extends Activity
     public class SendTimesToWatchServiceConnection implements ServiceConnection {
         public void onServiceConnected(ComponentName name, IBinder service) {
             // when the service starts, set the toggle to show a 'stop' symbol
-            setButtonStop();
+            //startButton.setChecked(false);
         }
         public void onServiceDisconnected(ComponentName name) {
-            // when the service stops, set the toggle to show a 'start' symbol
-            setButtonStart();
+            // when the service stops, set the toggle to reflect it
+            startButton.setChecked(false);
         }
     }
     
-    class StartButtonClickListener implements View.OnClickListener {
-        public void onClick(View v) {
+    class StartButtonClickListener implements CompoundButton.OnCheckedChangeListener {
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) { 
             // start
-            if( startButtonToggled ) {
+            if( isChecked ) {
                 // get stop id from form input
                 String stopid = entryEditText.getText().toString();
                 
@@ -152,21 +150,15 @@ public class BusWatch extends Activity
                 startService( startWatchTimesIntent );
                 
             // stop
-            } else {                
+            } else {
+                
+                // note that when the service expires and kills itself, the connection listener notices and flips off
+                // the toggle, which causes the servie to try to stop iteslf. luckliy, this isn't really a problem,
+                // but it's still kind of kludgy
                 stopService( new Intent( busWatchContext, SendTimesToWatchService.class ) );
             }
         }
     }
-    
-    public void setButtonStart() {
-        startButton.setImageResource( R.drawable.startsmall );
-        startButtonToggled = true;
-    }
-    
-    public void setButtonStop() { 
-        startButton.setImageResource( R.drawable.stopsmall );
-        startButtonToggled = false;
-    } 
     
     private void getRoutes() {
         // get the route id
@@ -220,7 +212,7 @@ public class BusWatch extends Activity
         entryEditText = (EditText) findViewById(R.id.entry);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         routesLinear = (RadioGroup) findViewById(R.id.routes);
-        startButton = (ImageButton) findViewById(R.id.startstopbutton);
+        startButton = (ToggleButton) findViewById(R.id.togglebutton);
         
         // create an object to represent the OneBusAway API
         apiKey = this.getString(R.string.apikey);
@@ -228,7 +220,7 @@ public class BusWatch extends Activity
         oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
         // add a click listener on the startstop toggle
-        startButton.setOnClickListener( new StartButtonClickListener() );
+        startButton.setOnCheckedChangeListener( new StartButtonClickListener() );
         
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );

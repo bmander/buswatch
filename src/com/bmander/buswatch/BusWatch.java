@@ -155,9 +155,6 @@ public class BusWatch extends Activity
                 startWatchTimesIntent.putExtra( "apiPeriod", APIPERIOD );
                 startWatchTimesIntent.putExtra( "duration", duration );
                 
-                // start the service
-                startService( startWatchTimesIntent );
-                
                 // set a partial power lock so the timer continues to work when the phone is off
                 Log.i( TAG, "acquiring PARTIAL_WAKE_LOCK" );
                 PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -168,8 +165,9 @@ public class BusWatch extends Activity
                 bindService( startWatchTimesIntent, 
                              new SendTimesToWatchServiceConnection(wl), 
                              0 );
-                             
-
+                
+                // start the service
+                startService( startWatchTimesIntent );
                 
             // stop
             } else {

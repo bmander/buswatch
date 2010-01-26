@@ -10,6 +10,7 @@ import android.os.*;
 import android.content.Context;
 
 public class SendTimesToWatchService extends Service {
+    
     String TAG = "SendTimesToWatchService";
     OneBusAway oneBusAway;
     
@@ -20,6 +21,7 @@ public class SendTimesToWatchService extends Service {
     SendTimesToWatchCountDown sendTimesToWatchCountDown = null;
     GetTimesFromApiCountDown getTimesFromApiCountDown = null;
     boolean sendTimesToWatchCountDownStarted = false;
+    boolean getTimesFromApiCountDownStarted = false;
     
     /*
      * A thread for fetching times from the OBA API - called repeatedly from a CountDownTimer
@@ -37,9 +39,9 @@ public class SendTimesToWatchService extends Service {
                 Log.i( TAG, "api getter tick - got times" );
                 
                 // if the watch sender hasn't been started, kick it off
-                if( !sendTimesToWatchCountDownStarted ) {
-                    sendTimesToWatchCountDownStarted=true;
+                if( getTimesFromApiCountDownStarted && !sendTimesToWatchCountDownStarted ) {
                     sendTimesToWatchCountDown.start();
+                    sendTimesToWatchCountDownStarted=true;
                 }
                                 
             } catch( Exception ex ) {
@@ -128,11 +130,11 @@ public class SendTimesToWatchService extends Service {
         
         // start the countdown timer that sends times to the watch
         sendTimesToWatchCountDown = new SendTimesToWatchCountDown( duration, watchPeriod );
-        //sendTimesToWatchCountDown.start();
         
         // start the countdown timer that gets times from the OBA API
         getTimesFromApiCountDown = new GetTimesFromApiCountDown( duration, apiPeriod, stopid );
         getTimesFromApiCountDown.start();
+        getTimesFromApiCountDownStarted = true;
         
         // inform the calling Activity that this service should be killed just as soon as possible
         return START_NOT_STICKY;
@@ -143,10 +145,12 @@ public class SendTimesToWatchService extends Service {
         if( sendTimesToWatchCountDown != null ) {
             Log.i( TAG, "canceling sendTimesToWatchCountDown" );
             sendTimesToWatchCountDown.cancel();
+            sendTimesToWatchCountDownStarted = false;
         }
         if( getTimesFromApiCountDown != null ) {
             Log.i( TAG, "cenceling getTimesFromApiCountDown" );
             getTimesFromApiCountDown.cancel();
+            getTimesFromApiCountDownStarted = false;
         }
         
         Log.i( TAG, TAG+" stopped" );

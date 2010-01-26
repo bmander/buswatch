@@ -125,6 +125,7 @@ public class BusWatch extends Activity
             startButton.setChecked(false);
             
             // release the power lock
+            Log.i( TAG, "releasing PARTIAL_WAKE_LOCK" );
             if(wl!=null) {
                 wl.release();
             }
@@ -158,6 +159,7 @@ public class BusWatch extends Activity
                 startService( startWatchTimesIntent );
                 
                 // set a partial power lock so the timer continues to work when the phone is off
+                Log.i( TAG, "acquiring PARTIAL_WAKE_LOCK" );
                 PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
                 PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
                 wl.acquire();

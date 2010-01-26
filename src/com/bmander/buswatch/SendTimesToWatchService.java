@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.util.Log;
 import android.os.Binder;
 import java.util.*;
+import android.os.*;
+import android.content.Context;
 
 public class SendTimesToWatchService extends Service {
     String TAG = "SendTimesToWatchService";
@@ -15,136 +17,84 @@ public class SendTimesToWatchService extends Service {
     
     ArrayList<OneBusAway.ArrivalPrediction> bustimes = null;
     
-    SendTimesToWatchThread threadSoul = null;
-    ServiceKillerTimer serviceKillerTimer = null;
-    GetTimesFromApiThread getTimesFromApiThread = null;
+    SendTimesToWatchCountDown sendTimesToWatchCountDown = null;
+    GetTimesFromApiCountDown getTimesFromApiCountDown = null;
+    boolean sendTimesToWatchCountDownStarted = false;
     
     /*
-     * The ServiceKillerTimer comes alive at the start of the service, waits for a while, and then kills the service off
-     */
-    class ServiceKillerTimer extends Thread {
-        int duration;
-        
-        ServiceKillerTimer(int duration) {
-            this.duration = duration;
-        }
-        
-        public void run() {
-            try {
-                this.sleep(duration);
-            } catch( InterruptedException ex ) {
-                Log.i( TAG, ex.getMessage() );
-            }
-            
-            Log.i( TAG, "killer timer shutting everything down now" );
-            parentThis.stopSelf();
-        }
-    }
-    
-    /*
-     * A thread for fetching times from the OBA API
+     * A thread for fetching times from the OBA API - called repeatedly from a CountDownTimer
      */
     class GetTimesFromApiThread extends Thread {
         String stopid;
-        int period; // milliseconds
-        boolean running;
          
-        GetTimesFromApiThread(String stopid, int period) {
+        GetTimesFromApiThread(String stopid) {
             this.stopid = stopid;
-            this.period = period;
-            this.running = false;
-        }
-        
-        public boolean isRunning() {
-            return this.running;
-        }
-        
-        public void politeStop() {
-            this.running = false;
         }
         
         public void run() {
-            // set the state of the thread to running
-            this.running = true;
-            
-            // get and display bustimes on watch
-            try {
+            try{
+                bustimes = oneBusAway.get_bustimes( stopid );
+                Log.i( TAG, "api getter tick - got times" );
                 
-                // repeat until something kills this thread - like the killer timer
-                while(this.running) {
-                
-                    // get arrivaldeparture predictions
-                    bustimes = oneBusAway.get_bustimes( stopid );
-                    
-                    this.sleep( period );
+                // if the watch sender hasn't been started, kick it off
+                if( !sendTimesToWatchCountDownStarted ) {
+                    sendTimesToWatchCountDownStarted=true;
+                    sendTimesToWatchCountDown.start();
                 }
-            } catch( Exception e ) {
-                Log.e( TAG, e.getMessage() );
+                                
+            } catch( Exception ex ) {
+                Log.e( TAG, ex.getMessage() );
             }
-            
-            // set the state of he thread to not running
-            this.running = false;
-            
         }
     }
     
     /*
-     * A thread for sending times to the watch
+     * CountDownTimer that repeatedly gets OBA times
      */
-    class SendTimesToWatchThread extends Thread {
+    class GetTimesFromApiCountDown extends CountDownTimer {
+        GetTimesFromApiThread worker;
         String stopid;
-        int period; // milliseconds
-        boolean running;
-         
-        SendTimesToWatchThread(String stopid, int period) {
+        
+        GetTimesFromApiCountDown(long duration, long period, String stopid) {
+            super( duration, period );
             this.stopid = stopid;
-            this.period = period;
-            this.running = false;
         }
         
-        public boolean isRunning() {
-            return this.running;
+        public void onTick(long millisUntilFinished) {
+            Log.i( TAG, "api getter tick - getting times with "+millisUntilFinished+" left");
+            (new GetTimesFromApiThread( stopid )).start();
+        }
+
+        public void onFinish() {
+            Log.i( TAG, "finished fetching OBA times" );
+        }
+    }
+    
+    /*
+     * CountDownTimer that repeatedly sends times to the watch. When it finishes, it stops the service.
+     */
+    class SendTimesToWatchCountDown extends CountDownTimer {
+        
+        SendTimesToWatchCountDown(long duration, long period) {
+            super( duration, period );
         }
         
-        public void politeStop() {
-            this.running = false;
-        }
-        
-        public void run() {
-            // set the state of the thread to running
-            this.running = true;
-            
-            // get and display bustimes on watch
-            try {
-                
-                // repeat until something kills this thread - like the killer timer
-                while(this.running) {
-                    if( bustimes != null ) {
-                        // show each prediction on the watch, at a regular interval
-                        for(int i=0; i<bustimes.size(); i++) {
-                            // if the stop signal has been thrown, exit the loop
-                            if(!this.running) {
-                                break;
-                            }
-                            
-                            OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
-                            
-                            // text the watch
-                            textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString(System.currentTimeMillis()) );
-                            
-                            // wait a bit to print the next one
-                            this.sleep(period);
-                        }
-                    }
-                    this.sleep(500);
-                }
-            } catch( Exception e ) {
-                Log.e( TAG, e.getMessage() );
+        public void onTick(long millisUntilFinished) {
+            Log.i( TAG, "watch sender tick - "+millisUntilFinished+" left");
+            if( bustimes != null ) {
+                // show each prediction on the watch, at a regular interval
+                //for(int i=0; i<bustimes.size(); i++) {
+                    OneBusAway.ArrivalPrediction prediction = bustimes.get(0);
+                    
+                    // text the watch
+                    textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString(System.currentTimeMillis()) );
+                //}
             }
-            
-            // set the state of he thread to not running
-            this.running = false;
-            
+        }
+
+        public void onFinish() {
+            Log.i( TAG, "finished sending times to the watch" );
+            parentThis.stopSelf();
         }
     }
     
@@ -154,6 +104,8 @@ public class SendTimesToWatchService extends Service {
     }
     
     public int onStartCommand( Intent intent, int flags, int startId ) {
+
+        
         // get service parameters from the intent
         String apiKey = intent.getExtras().getString( "apiKey" );
         String obaApiDomain = intent.getExtras().getString( "obaApiDomain" );
@@ -174,29 +126,27 @@ public class SendTimesToWatchService extends Service {
         // create the OneBusAway API
         oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
-        // start the thread that does all the work
-        threadSoul = new SendTimesToWatchThread(stopid, watchPeriod);
-        threadSoul.start();
+        // start the countdown timer that sends times to the watch
+        sendTimesToWatchCountDown = new SendTimesToWatchCountDown( duration, watchPeriod );
+        //sendTimesToWatchCountDown.start();
         
-        // start the times fetcher thread
-        getTimesFromApiThread = new GetTimesFromApiThread( stopid, apiPeriod );
-        getTimesFromApiThread.start();
-        
-        // start the killer timer
-        serviceKillerTimer = new ServiceKillerTimer( duration );
-        serviceKillerTimer.start();
+        // start the countdown timer that gets times from the OBA API
+        getTimesFromApiCountDown = new GetTimesFromApiCountDown( duration, apiPeriod, stopid );
+        getTimesFromApiCountDown.start();
         
         // inform the calling Activity that this service should be killed just as soon as possible
         return START_NOT_STICKY;
     }
     
     public void onDestroy() {
-        if( threadSoul != null ) {
-            threadSoul.politeStop();
+
+        if( sendTimesToWatchCountDown != null ) {
+            sendTimesToWatchCountDown.cancel();
         }
-        if( getTimesFromApiThread != null ) {
-            getTimesFromApiThread.politeStop();
+        if( getTimesFromApiCountDown != null ) {
+            getTimesFromApiCountDown.cancel();
         }
+        
         Log.i( TAG, TAG+" stopped" );
     }
     

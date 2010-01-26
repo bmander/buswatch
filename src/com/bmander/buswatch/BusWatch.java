@@ -17,6 +17,7 @@ import android.app.Service;
 import android.os.IBinder;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
+import android.os.PowerManager;
 
 
 public class BusWatch extends Activity
@@ -115,8 +116,15 @@ public class BusWatch extends Activity
         public void onServiceDisconnected(ComponentName name) {
             // when the service stops, set the toggle to reflect it
             startButton.setChecked(false);
+            
+            // release the power lock
+            if(wl!=null) {
+                wl.release();
+            }
         }
     }
+    
+    PowerManager.WakeLock wl ;
     
     class StartButtonClickListener implements CompoundButton.OnCheckedChangeListener {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) { 
@@ -141,13 +149,18 @@ public class BusWatch extends Activity
                 startWatchTimesIntent.putExtra( "apiPeriod", APIPERIOD );
                 startWatchTimesIntent.putExtra( "duration", duration );
                 
+                // start the service
+                startService( startWatchTimesIntent );
+                
                 // bind to the service so we can pop the toggle when it dies
                 bindService( startWatchTimesIntent, 
                              new SendTimesToWatchServiceConnection(), 
                              0 );
                              
-                // start the service
-                startService( startWatchTimesIntent );
+                // set a partial power lock so the timer continues to work when the phone is off
+                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+                wl.acquire();
                 
             // stop
             } else {

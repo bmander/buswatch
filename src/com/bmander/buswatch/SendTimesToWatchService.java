@@ -141,9 +141,11 @@ public class SendTimesToWatchService extends Service {
     public void onDestroy() {
 
         if( sendTimesToWatchCountDown != null ) {
+            Log.i( TAG, "canceling sendTimesToWatchCountDown" );
             sendTimesToWatchCountDown.cancel();
         }
         if( getTimesFromApiCountDown != null ) {
+            Log.i( TAG, "cenceling getTimesFromApiCountDown" );
             getTimesFromApiCountDown.cancel();
         }
         

@@ -109,6 +109,13 @@ public class BusWatch extends Activity
     }
     
     public class SendTimesToWatchServiceConnection implements ServiceConnection {
+        // the connection is the keeper of a wakelock that it needs to destroy when the service is disconnected
+        PowerManager.WakeLock wl;
+        
+        SendTimesToWatchServiceConnection( PowerManager.WakeLock wl ) {
+            this.wl = wl;
+        }
+        
         public void onServiceConnected(ComponentName name, IBinder service) {
             // when the service starts, set the toggle to show a 'stop' symbol
             //startButton.setChecked(false);
@@ -123,9 +130,7 @@ public class BusWatch extends Activity
             }
         }
     }
-    
-    PowerManager.WakeLock wl ;
-    
+        
     class StartButtonClickListener implements CompoundButton.OnCheckedChangeListener {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) { 
             // start
@@ -152,15 +157,17 @@ public class BusWatch extends Activity
                 // start the service
                 startService( startWatchTimesIntent );
                 
-                // bind to the service so we can pop the toggle when it dies
-                bindService( startWatchTimesIntent, 
-                             new SendTimesToWatchServiceConnection(), 
-                             0 );
-                             
                 // set a partial power lock so the timer continues to work when the phone is off
                 PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+                PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
                 wl.acquire();
+                
+                // bind to the service so we can pop the toggle when it dies
+                bindService( startWatchTimesIntent, 
+                             new SendTimesToWatchServiceConnection(wl), 
+                             0 );
+                             
+
                 
             // stop
             } else {

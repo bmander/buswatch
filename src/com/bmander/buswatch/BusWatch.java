@@ -132,10 +132,10 @@ public class BusWatch extends Activity
         }
     }
         
-    class StartButtonClickListener implements CompoundButton.OnCheckedChangeListener {
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) { 
+    class StartButtonClickListener implements View.OnClickListener {
+        public void onClick(View view) { 
             // start
-            if( isChecked ) {
+            if( ((CompoundButton)view).isChecked() ) {
                 // get stop id from form input
                 String stopid = entryEditText.getText().toString();
                 
@@ -171,10 +171,6 @@ public class BusWatch extends Activity
                 
             // stop
             } else {
-                
-                // note that when the service expires and kills itself, the connection listener notices and flips off
-                // the toggle, which causes the servie to try to stop iteslf. luckliy, this isn't really a problem,
-                // but it's still kind of kludgy
                 stopService( new Intent( busWatchContext, SendTimesToWatchService.class ) );
             }
         }
@@ -240,7 +236,7 @@ public class BusWatch extends Activity
         oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
         // add a click listener on the startstop toggle
-        startButton.setOnCheckedChangeListener( new StartButtonClickListener() );
+        startButton.setOnClickListener( new StartButtonClickListener() );
         
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );

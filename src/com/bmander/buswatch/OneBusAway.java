@@ -3,6 +3,7 @@ import java.net.*;
 import org.json.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.lang.Math;
 
 /*
  * Provides an interface to the OneBusAway API
@@ -66,13 +67,39 @@ public class OneBusAway {
             }
         }
         
+        String getRouteId() {
+            try{
+                return content.getString("routeId");
+            } catch(JSONException e) {
+                return "";
+            }
+        }
+        
         String getETAString(long wrtTime) {
             long eta = getETA(wrtTime);
             
             // make it human-readable
             long minutes = eta/60000;
-            long seconds = (eta%60000)/1000;
+            long seconds = Math.abs( (eta%60000)/1000 );
             return minutes+" min "+seconds+" sec";
+        }
+        
+        String getShortETAString(long wrtTime, boolean forceLongish) {
+            long eta = getETA(wrtTime);
+            
+            // make it human-readable
+            long minutes = eta/60000;
+            long seconds = Math.abs( (eta%60000)/1000 );
+            
+            if( forceLongish || Math.abs(minutes) < 2 ) {
+                return minutes+"m "+seconds+"s";
+            } else {
+                return minutes+"m";
+            }
+        }
+        
+        String getShortETAString(long wrtTime) {
+            return getShortETAString(wrtTime, false);
         }
         
     }

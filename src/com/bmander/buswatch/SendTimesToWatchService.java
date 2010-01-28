@@ -76,21 +76,51 @@ public class SendTimesToWatchService extends Service {
      * CountDownTimer that repeatedly sends times to the watch. When it finishes, it stops the service.
      */
     class SendTimesToWatchCountDown extends CountDownTimer {
+        String routeId;
         
-        SendTimesToWatchCountDown(long duration, long period) {
+        SendTimesToWatchCountDown(long duration, long period, String routeId) {
             super( duration, period );
+            this.routeId = routeId;
         }
         
         public void onTick(long millisUntilFinished) {
             Log.i( TAG, "watch sender tick - "+millisUntilFinished+" left");
             if( bustimes != null ) {
-                // show each prediction on the watch, at a regular interval
-                //for(int i=0; i<bustimes.size(); i++) {
-                    OneBusAway.ArrivalPrediction prediction = bustimes.get(0);
+                String routeDesc=null;
+                String routeArrivals = "";
+                
+                // show all predictions that match the countdown's routeId in one line
+                for(int i=0; i<bustimes.size(); i++) {
                     
-                    // text the watch
-                    textWatch( prediction.getShortName()+" "+prediction.getHeadsign(), prediction.getETAString(System.currentTimeMillis()) );
-                //}
+                    // get bustimes
+                    OneBusAway.ArrivalPrediction prediction = bustimes.get(i);
+                    
+                    // if the route prediction matches the route that we're showing
+                    if( prediction.getRouteId().equals( routeId ) ){
+                        
+                        // if we don't have a route description yet, get it from the prediction
+                        if(routeDesc == null) {
+                            routeDesc = prediction.getShortName()+" "+prediction.getHeadsign();
+                        }
+                        
+                        // if it's the first, force a relatively high-precision prediction
+                        if(i==0) {
+                            routeArrivals += prediction.getShortETAString(System.currentTimeMillis(), true);
+                        // else a minute-resolution prediction is okay
+                        } else {
+                            routeArrivals += ", "+prediction.getShortETAString(System.currentTimeMillis());
+                        }
+                        
+                    }
+                    
+                }
+                
+                // text the watch, unless we have no predictions
+                if(routeDesc != null) {
+                    textWatch( routeDesc, routeArrivals );
+                } else {
+                    textWatch( "no arrivals soon", "" );
+                }
             }
         }
 
@@ -115,6 +145,7 @@ public class SendTimesToWatchService extends Service {
         int watchPeriod = intent.getExtras().getInt( "watchPeriod" );
         int apiPeriod = intent.getExtras().getInt( "apiPeriod" );
         int duration = intent.getExtras().getInt( "duration" );
+        String routeId = intent.getExtras().getString( "routeId" );
         
         // log service parameters
         Log.i( TAG, TAG+" started" );
@@ -124,12 +155,13 @@ public class SendTimesToWatchService extends Service {
         Log.i( TAG, "watchPeriod: "+watchPeriod );
         Log.i( TAG, "apiPeriod: "+apiPeriod );
         Log.i( TAG, "duration: "+duration );
+        Log.i( TAG, "routeId: "+routeId );
         
         // create the OneBusAway API
         oneBusAway = new OneBusAway(obaApiDomain, apiKey);
         
         // start the countdown timer that sends times to the watch
-        sendTimesToWatchCountDown = new SendTimesToWatchCountDown( duration, watchPeriod );
+        sendTimesToWatchCountDown = new SendTimesToWatchCountDown( duration, watchPeriod, routeId );
         
         // start the countdown timer that gets times from the OBA API
         getTimesFromApiCountDown = new GetTimesFromApiCountDown( duration, apiPeriod, stopid );

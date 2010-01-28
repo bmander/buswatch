@@ -25,7 +25,7 @@ public class BusWatch extends Activity
     EditText entryEditText;
     ProgressBar progressBar;
     RadioGroup routesLinear;
-    ArrayList<RadioButton> routeSelectors = new ArrayList<RadioButton>();
+    ArrayList<OneBusAway.Route> routeSelectors = new ArrayList<OneBusAway.Route>();
     Spinner durationSpinner;
     ToggleButton startButton;
     
@@ -48,6 +48,17 @@ public class BusWatch extends Activity
     // onebusaway global variables
     String obaApiDomain;
     String apiKey;
+    
+    String currentRouteId = null;
+    
+    class RouteRadioButtonListener implements CompoundButton.OnCheckedChangeListener {
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if(isChecked) {
+                currentRouteId = (String)buttonView.getTag();
+                Log.i( TAG, "just selected route "+currentRouteId );
+            }
+        }
+    }
     
     class GetRoutesThread extends Thread {
         String routeId;
@@ -88,9 +99,17 @@ public class BusWatch extends Activity
                             
                             // put a checkbox on the right, pre-filled out
                             RadioButton radioBox = new RadioButton(busWatchContext);
+                            
+                            // set the tag to the routeId string that this radiobox represents
+                            radioBox.setTag( route.getId() );
                             radioBox.setText( route.getShortName()+" "+route.getDescription() );
+                            
+                            //causes the currentRouteId to get set with the radioBox tag, which is the radiobox's route id
+                            radioBox.setOnCheckedChangeListener( new RouteRadioButtonListener() );
+                            
+                            // add the radiobutton to the radiogroup
                             routesLinear.addView( radioBox );
-                            routeSelectors.add( radioBox );
+                            routeSelectors.add( route );
                         }
                     }
                 });
@@ -146,6 +165,9 @@ public class BusWatch extends Activity
                 // send a log message
                 Log.d( TAG, "run for duration:"+duration );
                 
+                // get the route from the radio group
+                Log.d( TAG, "route selected:"+currentRouteId );
+                
                 // create an intent for a new watch-transmitter service
                 Intent startWatchTimesIntent = new Intent( busWatchContext, SendTimesToWatchService.class );
                 startWatchTimesIntent.putExtra( "stopId", stopid );
@@ -154,6 +176,7 @@ public class BusWatch extends Activity
                 startWatchTimesIntent.putExtra( "watchPeriod", TEXTPERIOD );
                 startWatchTimesIntent.putExtra( "apiPeriod", APIPERIOD );
                 startWatchTimesIntent.putExtra( "duration", duration );
+                startWatchTimesIntent.putExtra( "routeId", currentRouteId );
                 
                 // set a partial power lock so the timer continues to work when the phone is off
                 Log.i( TAG, "acquiring PARTIAL_WAKE_LOCK" );

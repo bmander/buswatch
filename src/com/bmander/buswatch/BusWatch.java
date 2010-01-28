@@ -28,6 +28,7 @@ public class BusWatch extends Activity
     ArrayList<OneBusAway.Route> routeSelectors = new ArrayList<OneBusAway.Route>();
     Spinner durationSpinner;
     ToggleButton startButton;
+    Button entryEditButton;
     
     OneBusAway oneBusAway;
     
@@ -196,8 +197,10 @@ public class BusWatch extends Activity
             } else {
                 stopService( new Intent( busWatchContext, SendTimesToWatchService.class ) );
             }
-        }
+        } 
     }
+    
+
     
     private void getRoutes() {
         // get the route id
@@ -207,6 +210,12 @@ public class BusWatch extends Activity
         if( !stopId.equals(newStopId) ) {
             stopId = newStopId;
             (new GetRoutesThread(stopId)).start();
+        }
+    }
+    
+    class EntryEditButtonClickListener implements View.OnClickListener {
+        public void onClick(View view) { 
+            getRoutes();
         }
     }
     
@@ -249,6 +258,7 @@ public class BusWatch extends Activity
         setContentView(R.layout.main);
         
         entryEditText = (EditText) findViewById(R.id.entry);
+        entryEditButton = (Button) findViewById(R.id.entrybutton);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         routesLinear = (RadioGroup) findViewById(R.id.routes);
         startButton = (ToggleButton) findViewById(R.id.togglebutton);
@@ -260,6 +270,9 @@ public class BusWatch extends Activity
         
         // add a click listener on the startstop toggle
         startButton.setOnClickListener( new StartButtonClickListener() );
+        
+        // add click listener for entry button
+        entryEditButton.setOnClickListener( new EntryEditButtonClickListener() );
         
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );

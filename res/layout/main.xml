@@ -10,13 +10,23 @@
         android:layout_height="wrap_content"
         android:text="Bus Stop ID (top of signpost schedule, like xxx-11200-xxx)"/>
 
-    <EditText
-        android:id="@+id/entry"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/editbox_background"
-        android:singleLine="true"
-        android:numeric="integer"/>
+    <LinearLayout android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+        <EditText
+            android:id="@+id/entry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/editbox_background"
+            android:singleLine="true"
+            android:numeric="integer"
+            android:layout_weight="6"/>
+        <Button android:id="@+id/entrybutton"
+                android:text="Get Routes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+    </LinearLayout>
         
     <ScrollView
         android:layout_width="fill_parent"

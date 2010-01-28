@@ -101,12 +101,7 @@ public class SendTimesToWatchService extends Service {
                         // if we don't have a route description yet, get it from the prediction
                         if(routeDesc == null) {
                             routeDesc = prediction.getShortName()+" "+prediction.getHeadsign();
-                        }
-                        
-                        // if it's the first, force a relatively high-precision prediction
-                        if(i==0) {
                             routeArrivals += prediction.getShortETAString(System.currentTimeMillis(), true);
-                        // else a minute-resolution prediction is okay
                         } else {
                             routeArrivals += ", "+prediction.getShortETAString(System.currentTimeMillis());
                         }

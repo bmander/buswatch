@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical">
@@ -8,11 +8,14 @@
         android:id="@+id/label"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Bus Stop ID (top of signpost schedule, like xxx-11200-xxx)"/>
+        android:text="Bus Stop ID (top of signpost schedule, like xxx-11200-xxx)"
+        android:layout_alignParentTop="true"/>
 
-    <LinearLayout android:layout_width="fill_parent"
+    <LinearLayout android:id="@+id/entrylayout"
+                  android:layout_width="fill_parent"
                   android:layout_height="wrap_content"
-                  android:orientation="horizontal">
+                  android:orientation="horizontal"
+                  android:layout_below="@+id/label">
         <EditText
             android:id="@+id/entry"
             android:layout_width="wrap_content"
@@ -28,9 +31,38 @@
                 android:layout_weight="1"/>
     </LinearLayout>
         
+    <LinearLayout android:id="@+id/togglelayout"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical"
+                  android:layout_alignParentBottom="true">
+        <TextView
+            android:id="@+id/durationlabel"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Keep watch on for:" />
+            
+        <Spinner 
+            android:id="@+id/durationspinner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:drawSelectorOnTop="true"
+            android:prompt="@string/duration_prompt"/>
+            
+        <ToggleButton android:id="@+id/togglebutton"
+            android:layout_width="110px"
+            android:layout_height="60px" 
+            android:textOn="STOP WATCH"
+            android:textOff="START WATCH"
+            android:layout_gravity="center|bottom"/>
+    </LinearLayout>
+    
+    
     <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="200px">
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/entrylayout"
+        android:layout_above="@+id/togglelayout">
         <RelativeLayout
             android:id="@+id/routepickerzone"
             android:layout_width="fill_parent"
@@ -52,24 +84,7 @@
         </RelativeLayout>
     </ScrollView>
     
-    <TextView
-        android:id="@+id/durationlabel"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="Keep watch on for:" />
+    
+
         
-    <Spinner 
-        android:id="@+id/durationspinner"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:drawSelectorOnTop="true"
-        android:prompt="@string/duration_prompt"/>
-        
-    <ToggleButton android:id="@+id/togglebutton"
-        android:layout_width="110px"
-        android:layout_height="60px" 
-        android:textOn="STOP WATCH"
-        android:textOff="START WATCH"
-        android:layout_gravity="center|bottom"/>
-        
-</LinearLayout>
+</RelativeLayout>

@@ -19,9 +19,15 @@
             android:text="1"
             android:background="#BCBEF5"/>
         <TextView
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Which Stop ID? (How do I find it?)"/>
+            android:text="Which Stop ID?"/>
+        <TextView
+            android:id="@+id/stopidhelp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#BCBEF5"
+            android:text=" (How do I find it?)"/>
     </LinearLayout>
 
     <LinearLayout android:id="@+id/entrylayout"

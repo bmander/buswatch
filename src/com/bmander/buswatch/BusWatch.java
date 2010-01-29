@@ -18,6 +18,7 @@ import android.os.IBinder;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
 import android.os.PowerManager;
+import android.app.*;
 
 
 public class BusWatch extends Activity
@@ -29,6 +30,8 @@ public class BusWatch extends Activity
     Spinner durationSpinner; 
     ToggleButton startButton;
     Button entryEditButton;
+    TextView stopIdHelp;
+    View mainView;
     
     OneBusAway oneBusAway;
     
@@ -219,6 +222,28 @@ public class BusWatch extends Activity
         }
     }
     
+    class StopIdClickListener implements View.OnClickListener {
+        public void onClick(View view) {
+            LinearLayout ll = new LinearLayout(busWatchContext);
+            ll.setOrientation(ll.VERTICAL);
+            
+            TextView helptext = new TextView(busWatchContext);
+            helptext.setText( "You can find your stop number in the upper left corner of the posted timetable at a bus stop:" );
+            ImageView img = new ImageView(busWatchContext);
+            img.setImageResource(R.drawable.stopid);
+
+            
+            ll.addView( helptext );
+            ll.addView( img );
+            
+            Dialog stopidhelp = new Dialog( busWatchContext );
+            stopidhelp.addContentView( ll, new ViewGroup.LayoutParams( ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT ) );
+            
+            stopidhelp.setTitle( "Help!" );
+            stopidhelp.show();
+        }
+    }
+    
     class StopIdFocusChangeListener implements View.OnFocusChangeListener {
         public void onFocusChange (View v, boolean hasFocus) {
             // if they've progressed to the next dialog box
@@ -257,11 +282,13 @@ public class BusWatch extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
+        mainView = findViewById(R.layout.main);
         entryEditText = (EditText) findViewById(R.id.entry);
         entryEditButton = (Button) findViewById(R.id.entrybutton);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         routesLinear = (RadioGroup) findViewById(R.id.routes);
         startButton = (ToggleButton) findViewById(R.id.togglebutton);
+        stopIdHelp = (TextView) findViewById(R.id.stopidhelp);
         
         // create an object to represent the OneBusAway API
         apiKey = this.getString(R.string.apikey);
@@ -277,6 +304,9 @@ public class BusWatch extends Activity
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );
         entryEditText.setOnEditorActionListener( new StopIdActionListener() );
+        
+        // ad a click listener for the stopidhelp textedit view
+        stopIdHelp.setOnClickListener( new StopIdClickListener() );
         
         // set progress spinner to indeterminate
         progressBar.setIndeterminate(true);

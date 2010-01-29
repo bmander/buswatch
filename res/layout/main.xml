@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#BCBEF5"
-            android:text=" (How do I find it?)"/>
+            android:text=" How do I find it?"/>
     </LinearLayout>
 
     <LinearLayout android:id="@+id/entrylayout"

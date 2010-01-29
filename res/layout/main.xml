@@ -4,12 +4,25 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/label"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="Bus Stop ID (top of signpost schedule, like xxx-11200-xxx)"
-        android:layout_alignParentTop="true"/>
+    <LinearLayout android:id="@+id/label"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_alignParentTop="true"
+                  android:orientation="horizontal">
+        <TextView
+            android:layout_width="30px"
+            android:layout_height="30px"
+            android:textScaleX="1.2"
+            android:gravity="center_vertical|center_horizontal"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:text="1"
+            android:background="#BCBEF5"/>
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Which Stop ID? (How do I find it?)"/>
+    </LinearLayout>
 
     <LinearLayout android:id="@+id/entrylayout"
                   android:layout_width="fill_parent"
@@ -36,11 +49,24 @@
                   android:layout_height="wrap_content"
                   android:orientation="vertical"
                   android:layout_alignParentBottom="true">
-        <TextView
-            android:id="@+id/durationlabel"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Keep watch on for:" />
+        <LinearLayout android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal">
+            <TextView
+                android:layout_width="30px"
+                android:layout_height="30px"
+                android:textScaleX="1.2"
+                android:gravity="center_vertical|center_horizontal"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:text="3"
+                android:background="#BCBEF5"/>
+            <TextView
+                android:id="@+id/durationlabel"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="How long should the watch run?" />
+        </LinearLayout>
             
         <Spinner 
             android:id="@+id/durationspinner"
@@ -58,31 +84,52 @@
     </LinearLayout>
     
     
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@+id/entrylayout"
-        android:layout_above="@+id/togglelayout">
-        <RelativeLayout
-            android:id="@+id/routepickerzone"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            >
-            <ProgressBar
-                android:id="@+id/progressbar"
-                android:layout_width="50px"
-                android:layout_height="50px"
-                android:visibility="invisible"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"/>
-            <RadioGroup
-                android:id="@+id/routes"
-                android:orientation="vertical"
+    <LinearLayout android:layout_width="fill_parent"
+                  android:layout_height="fill_parent"
+                  android:layout_below="@+id/entrylayout"
+                  android:layout_above="@+id/togglelayout"
+                  android:orientation="vertical">
+        <LinearLayout android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="horizontal">
+            <TextView
+                android:layout_width="30px"
+                android:layout_height="30px"
+                android:textScaleX="1.2"
+                android:gravity="center_vertical|center_horizontal"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:text="2"
+                android:background="#BCBEF5"/>
+            <TextView
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
-            </RadioGroup>
-        </RelativeLayout>
-    </ScrollView>
+                android:layout_height="wrap_content"
+                android:text="Which route?" />
+        </LinearLayout>
+        <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+            <RelativeLayout
+                android:id="@+id/routepickerzone"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+                <ProgressBar
+                    android:id="@+id/progressbar"
+                    android:layout_width="50px"
+                    android:layout_height="50px"
+                    android:visibility="invisible"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"/>
+                <RadioGroup
+                    android:id="@+id/routes"
+                    android:orientation="vertical"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+                </RadioGroup>
+            </RelativeLayout>
+        </ScrollView>
+    </LinearLayout>
     
     
 

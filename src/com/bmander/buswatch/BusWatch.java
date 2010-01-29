@@ -26,7 +26,7 @@ public class BusWatch extends Activity
     ProgressBar progressBar;
     RadioGroup routesLinear;
     ArrayList<OneBusAway.Route> routeSelectors = new ArrayList<OneBusAway.Route>();
-    Spinner durationSpinner;
+    Spinner durationSpinner; 
     ToggleButton startButton;
     Button entryEditButton;
     

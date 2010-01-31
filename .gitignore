@@ -1,5 +1,6 @@
 bin
 gen
+release
 local.properties
 README.local
 res/values/onebusaway.xml

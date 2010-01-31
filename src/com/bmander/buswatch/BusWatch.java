@@ -19,6 +19,7 @@ import android.content.ServiceConnection;
 import android.content.ComponentName;
 import android.os.PowerManager;
 import android.app.*;
+import java.io.FileNotFoundException;
 
 
 public class BusWatch extends Activity
@@ -118,8 +119,10 @@ public class BusWatch extends Activity
                     }
                 });
 
+            } catch( FileNotFoundException e ) {
+                printInMainThread( "could not find stop ID '"+routeId+"'" );
             } catch( Exception e ) {
-                printInMainThread( "routes fetch failed: "+e.getMessage() );
+                printInMainThread( e.toString() );
             }
             
             // hide the indeterminate progress spinner

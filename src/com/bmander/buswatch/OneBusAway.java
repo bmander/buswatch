@@ -88,11 +88,27 @@ public class OneBusAway {
             long eta = getETA(wrtTime);
             
             // make it human-readable
-            long minutes = eta/60000;
+            long minutes = Math.abs( eta/60000 );
             long seconds = Math.abs( (eta%60000)/1000 );
             
             if( forceLongish || Math.abs(minutes) < 2 ) {
-                return minutes+"m "+seconds+"s";
+                String ret;
+                
+                // print sign
+                if( eta>0 ) {
+                    ret="";
+                } else {
+                    ret="-";
+                }
+                
+                // print minutes
+                if(minutes>0) {
+                    ret += minutes+"m ";
+                }
+                
+                // print seconds
+                ret += seconds+"s";
+                return ret;
             } else {
                 return minutes+"m";
             }

@@ -28,6 +28,7 @@ public class SendTimesToWatchService extends Service {
      */
     class GetTimesFromApiThread extends Thread {
         String stopid;
+        public boolean done=false;
          
         GetTimesFromApiThread(String stopid) {
             this.stopid = stopid;
@@ -43,10 +44,11 @@ public class SendTimesToWatchService extends Service {
                     sendTimesToWatchCountDown.start();
                     sendTimesToWatchCountDownStarted=true;
                 }
-                                
             } catch( Exception ex ) {
                 Log.e( TAG, ex.getMessage() );
             }
+            
+            done=true;
         }
     }
     
@@ -54,7 +56,7 @@ public class SendTimesToWatchService extends Service {
      * CountDownTimer that repeatedly gets OBA times
      */
     class GetTimesFromApiCountDown extends CountDownTimer {
-        GetTimesFromApiThread worker;
+        GetTimesFromApiThread worker=null;
         String stopid;
         
         GetTimesFromApiCountDown(long duration, long period, String stopid) {
@@ -64,7 +66,13 @@ public class SendTimesToWatchService extends Service {
         
         public void onTick(long millisUntilFinished) {
             Log.i( TAG, "api getter tick - getting times with "+millisUntilFinished+" left");
-            (new GetTimesFromApiThread( stopid )).start();
+            
+            if(worker==null || worker.done) {
+                worker = new GetTimesFromApiThread( stopid );
+                worker.start();
+            } else {
+                Log.i( TAG, "api getter still working on the last request, waiting" );
+            }
         }
 
         public void onFinish() {

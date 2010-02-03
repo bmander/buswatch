@@ -20,6 +20,7 @@ import android.content.ComponentName;
 import android.os.PowerManager;
 import android.app.*;
 import java.io.FileNotFoundException;
+import android.bluetooth.BluetoothAdapter;
 
 
 public class BusWatch extends Activity
@@ -43,6 +44,7 @@ public class BusWatch extends Activity
     
     int TEXTPERIOD = 4000;
     int APIPERIOD = 10000;
+    int REQUEST_ENABLE_BT=1;
     
     private Handler mHandler = new Handler();
 
@@ -55,6 +57,8 @@ public class BusWatch extends Activity
     String apiKey;
     
     String currentRouteId = null;
+    
+    boolean bluetooth_supported = false;
     
     class RouteRadioButtonListener implements CompoundButton.OnCheckedChangeListener {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -285,6 +289,8 @@ public class BusWatch extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
+        // get window size, so we can freeze the top-level view
+        
         mainView = findViewById(R.layout.main);
         entryEditText = (EditText) findViewById(R.id.entry);
         entryEditButton = (Button) findViewById(R.id.entrybutton);
@@ -324,6 +330,24 @@ public class BusWatch extends Activity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         durationSpinner.setAdapter(adapter);
         
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            bluetooth_supported=false;
+        } else {
+            if (!mBluetoothAdapter.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            } else {
+                bluetooth_supported=true;
+            }
+        }
+        
+    }
+    
+    protected void onActivityResult (int requestCode, int resultCode, Intent data) {
+        if(requestCode==REQUEST_ENABLE_BT && resultCode==RESULT_OK) {
+           bluetooth_supported=true;   
+        }
     }
     
     /*

@@ -314,7 +314,7 @@ public class BusWatch extends Activity
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );
         entryEditText.setOnEditorActionListener( new StopIdActionListener() );
         
-        // ad a click listener for the stopidhelp textedit view
+        // add a click listener for the stopidhelp textedit view
         stopIdHelp.setOnClickListener( new StopIdClickListener() );
         
         // set progress spinner to indeterminate
@@ -330,6 +330,7 @@ public class BusWatch extends Activity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         durationSpinner.setAdapter(adapter);
         
+        // initialize bluetooth
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
             bluetooth_supported=false;

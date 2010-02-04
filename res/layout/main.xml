@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical">
-    <RelativeLayout android:id="@+id/bluetooth"
+    <RelativeLayout android:id="@+id/watchpicker"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
@@ -30,13 +30,13 @@
     <View android:layout_width="fill_parent"
           android:layout_height="0.25sp"
           android:background="#555555"
-          android:layout_below="@+id/bluetooth"/>
+          android:layout_below="@+id/watchpicker"/>
 
     <LinearLayout android:id="@+id/label"
                   android:layout_width="fill_parent"
                   android:layout_height="wrap_content"
                   android:orientation="horizontal"
-                  android:layout_below="@+id/bluetooth">
+                  android:layout_below="@+id/watchpicker">
         <TextView
             android:layout_width="30px"
             android:layout_height="30px"

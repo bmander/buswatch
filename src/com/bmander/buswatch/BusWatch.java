@@ -34,6 +34,7 @@ public class BusWatch extends Activity
     Button entryEditButton;
     TextView stopIdHelp;
     View mainView;
+    RelativeLayout watchPickerView;
     
     OneBusAway oneBusAway;
     
@@ -251,6 +252,12 @@ public class BusWatch extends Activity
         }
     }
     
+    class WatchPickerOnClickListener implements View.OnClickListener {
+        public void onClick( View view ) {
+            busWatchContext.startActivity( new Intent(busWatchContext, DisplayPickerActivity.class) );
+        }
+    }
+    
     class StopIdFocusChangeListener implements View.OnFocusChangeListener {
         public void onFocusChange (View v, boolean hasFocus) {
             // if they've progressed to the next dialog box
@@ -289,8 +296,7 @@ public class BusWatch extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        // get window size, so we can freeze the top-level view
-        
+        // get views, so we can do things with them
         mainView = findViewById(R.layout.main);
         entryEditText = (EditText) findViewById(R.id.entry);
         entryEditButton = (Button) findViewById(R.id.entrybutton);
@@ -298,7 +304,8 @@ public class BusWatch extends Activity
         routesLinear = (RadioGroup) findViewById(R.id.routes);
         startButton = (ToggleButton) findViewById(R.id.togglebutton);
         stopIdHelp = (TextView) findViewById(R.id.stopidhelp);
-        
+        watchPickerView = (RelativeLayout) findViewById(R.id.watchpicker);
+                
         // create an object to represent the OneBusAway API
         apiKey = this.getString(R.string.apikey);
         obaApiDomain = this.getString(R.string.onebusaway_api_domain);
@@ -309,6 +316,9 @@ public class BusWatch extends Activity
         
         // add click listener for entry button
         entryEditButton.setOnClickListener( new EntryEditButtonClickListener() );
+        
+        // add click listener for watch picker view
+        watchPickerView.setOnClickListener( new WatchPickerOnClickListener() );
         
         // add a listener for the enter event on the text entry box
         entryEditText.setOnFocusChangeListener( new StopIdFocusChangeListener() );

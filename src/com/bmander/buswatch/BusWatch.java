@@ -3,7 +3,7 @@ package com.bmander.buswatch;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.*;
-import java.lang.*;
+import java.lang.*; 
 import android.view.*;
 import org.json.*;
 import android.content.Intent;
@@ -11,7 +11,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import java.util.*;
 import android.view.inputmethod.EditorInfo;
-import android.os.Handler;
+import android.os.Handler; 
 import android.content.Context;
 import android.app.Service;
 import android.os.IBinder;
@@ -20,8 +20,6 @@ import android.content.ComponentName;
 import android.os.PowerManager;
 import android.app.*;
 import java.io.FileNotFoundException;
-import android.bluetooth.BluetoothAdapter;
-
 
 public class BusWatch extends Activity
 {    
@@ -45,7 +43,7 @@ public class BusWatch extends Activity
     
     int TEXTPERIOD = 4000;
     int APIPERIOD = 10000;
-    int REQUEST_ENABLE_BT=1;
+
     
     private Handler mHandler = new Handler();
 
@@ -68,7 +66,7 @@ public class BusWatch extends Activity
                 Log.i( TAG, "just selected route "+currentRouteId );
             }
         }
-    }
+    } 
     
     class GetRoutesThread extends Thread {
         String routeId;
@@ -93,11 +91,11 @@ public class BusWatch extends Activity
             mHandler.post(new Runnable() {
                 public void run() {
                     routesLinear.removeAllViews();
-                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.VISIBLE); 
                 }
-            });
+            }); 
             
-            // fetch the routes and fill out the checkboxes for them
+            // fetch the routes and fill out the checkboxes for them 
             try{
                 final ArrayList<OneBusAway.Route> routes = oneBusAway.getRoutes( routeId );
                 
@@ -315,7 +313,7 @@ public class BusWatch extends Activity
         startButton.setOnClickListener( new StartButtonClickListener() );
         
         // add click listener for entry button
-        entryEditButton.setOnClickListener( new EntryEditButtonClickListener() );
+        entryEditButton.setOnClickListener( new EntryEditButtonClickListener() ); 
         
         // add click listener for watch picker view
         watchPickerView.setOnClickListener( new WatchPickerOnClickListener() );
@@ -340,26 +338,8 @@ public class BusWatch extends Activity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         durationSpinner.setAdapter(adapter);
         
-        // initialize bluetooth
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            bluetooth_supported=false;
-        } else {
-            if (!mBluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            } else {
-                bluetooth_supported=true;
-            }
-        }
-        
     }
     
-    protected void onActivityResult (int requestCode, int resultCode, Intent data) {
-        if(requestCode==REQUEST_ENABLE_BT && resultCode==RESULT_OK) {
-           bluetooth_supported=true;   
-        }
-    }
     
     /*
      * Convenience method for activating bluetooth watch

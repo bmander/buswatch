@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BusWatch</string>
+    <string name="displaypickertitle">Configure Output Device</string>
     <string name="onebusaway_api_domain">api.onebusaway.org</string>
     <string name="duration_prompt">Display duration</string>
     

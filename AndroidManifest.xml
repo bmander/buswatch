@@ -17,7 +17,8 @@
         </activity>
         <activity android:name="DisplayPickerActivity"
                   android:screenOrientation="nosensor"
-                  android:windowSoftInputMode="adjustPan" />
+                  android:windowSoftInputMode="adjustPan"
+                  android:label="@string/displaypickertitle" />
         <service android:name="SendTimesToWatchService" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />

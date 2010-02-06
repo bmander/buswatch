@@ -9,6 +9,9 @@ import android.util.Log;
 import java.util.Set;
 import android.view.*; 
 import android.widget.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 
 public class DisplayPickerActivity extends Activity {
     
@@ -17,9 +20,11 @@ public class DisplayPickerActivity extends Activity {
     String TAG = "DisplayPickerActivity";
     
     // class state variables
-    boolean bluetooth_supported;
     BluetoothAdapter mBluetoothAdapter = null;
     BluetoothDevice currentDevice = null;
+    BroadcastReceiver mReceiver = null;
+    BroadcastReceiver finishedReceiver = null;
+    boolean discoveryUnderway=false;
     
     // views
     RadioGroup devicesRadioGroup;
@@ -29,12 +34,19 @@ public class DisplayPickerActivity extends Activity {
     
     class ScanButtonClickListener implements View.OnClickListener {
         public void onClick(View view) {
-            // flip the scan button over to an indeterminate progressbar
-            progressBar.setVisibility(View.VISIBLE);
-            progressText.setText("Scanning");
-            
-            // search for unpaired devices
-            Log.i( TAG, "start scanning for other devices!" );
+            if(!discoveryUnderway) {
+                // flip a bit so we only can do this once at a time
+                discoveryUnderway=true;
+                
+                // flip the scan button over to an indeterminate progressbar
+                progressBar.setVisibility(View.VISIBLE);
+                progressText.setText("Scanning");
+                
+                
+                // search for unpaired devices
+                Log.i( TAG, "start scanning for other devices!" );
+                mBluetoothAdapter.startDiscovery();
+            }
         }
     }
     
@@ -77,6 +89,47 @@ public class DisplayPickerActivity extends Activity {
             }
         }
         
+        // register receiver for bluetooth discovery found
+        // Create a BroadcastReceiver for ACTION_FOUND
+        mReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                
+                // when discovery finds a device
+                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                    // Get the BluetoothDevice object from the Intent
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    // Add the name and address to an array adapter to show in a ListView
+                    Log.i( TAG, "found "+device.getName() + " - " + device.getAddress() );
+                    addToRadioGroup( device );
+                }
+            }
+        };
+        // Register the BroadcastReceiver
+        registerReceiver(mReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND)); // Don't forget to unregister during onDestroy
+        
+        // register receiver for bluetooth discovery finished
+        finishedReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                
+                // when discovery is complete
+                if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                    Log.i( TAG, "done scanning" );
+                    discoveryUnderway=false;
+                    progressBar.setVisibility(View.INVISIBLE);
+                    progressText.setText("Scan for devices");
+                }
+            }
+        };
+        // Register the BroadcastReceiver
+        registerReceiver(finishedReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
+        
+    }
+    
+    public void onDestroy() {
+        unregisterReceiver(mReceiver);
+        unregisterReceiver(finishedReceiver);
     }
     
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {
@@ -98,7 +151,35 @@ public class DisplayPickerActivity extends Activity {
                 currentDevice = (BluetoothDevice)buttonView.getTag();
             }
         }
-    } 
+    }
+    
+    private void addToRadioGroup(BluetoothDevice device) {
+        // scan through the radiogroup for the device
+        for(int i=0; i<devicesRadioGroup.getChildCount(); i++) {
+            // if it's in there, return
+            RadioButton rb = (RadioButton)devicesRadioGroup.getChildAt(i);
+            if( ((BluetoothDevice)rb.getTag()).getAddress().equals( device.getAddress() ) ) {
+                return;
+            }
+        }
+        // if it's not there, go ahead
+        
+        // Add the name and address to an array adapter to show in a ListView
+        Log.i(TAG, device.getName() + " - " + device.getAddress());
+        
+        // put a checkbox on the right, pre-filled out
+        RadioButton radioBox = new RadioButton(this);
+        
+        // set the tag to the routeId string that this radiobox represents
+        radioBox.setTag( device );
+        radioBox.setText( device.getName() + " - " + device.getAddress() );
+        
+        //causes the currentRouteId to get set with the radioBox tag, which is the radiobox's route id
+        radioBox.setOnCheckedChangeListener( new SelectRadioButtonListener() );
+        
+        // add the radiobutton to the radiogroup
+        devicesRadioGroup.addView( radioBox );
+    }
     
     private void get_devices() {
         Log.i( TAG, "bluetooth checked, getting devices" );
@@ -108,21 +189,7 @@ public class DisplayPickerActivity extends Activity {
         if (pairedDevices.size() > 0) {
             // Loop through paired devices
             for (BluetoothDevice device : pairedDevices) {
-                // Add the name and address to an array adapter to show in a ListView
-                Log.i(TAG, device.getName() + " - " + device.getAddress());
-                
-                // put a checkbox on the right, pre-filled out
-                RadioButton radioBox = new RadioButton(this);
-                
-                // set the tag to the routeId string that this radiobox represents
-                radioBox.setTag( device );
-                radioBox.setText( device.getName() + " - " + device.getAddress() );
-                
-                //causes the currentRouteId to get set with the radioBox tag, which is the radiobox's route id
-                radioBox.setOnCheckedChangeListener( new SelectRadioButtonListener() );
-                
-                // add the radiobutton to the radiogroup
-                devicesRadioGroup.addView( radioBox );
+                addToRadioGroup( device );
             }
         }
     }

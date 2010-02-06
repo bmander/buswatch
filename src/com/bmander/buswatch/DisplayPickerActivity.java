@@ -22,9 +22,9 @@ public class DisplayPickerActivity extends Activity {
     // class state variables
     BluetoothAdapter mBluetoothAdapter = null;
     BluetoothDevice currentDevice = null;
-    BroadcastReceiver mReceiver = null;
+    BroadcastReceiver foundReceiver = null;
     BroadcastReceiver finishedReceiver = null;
-    boolean discoveryUnderway=false;
+    boolean discoveryUnderway = false;
     
     // views
     RadioGroup devicesRadioGroup;
@@ -104,7 +104,7 @@ public class DisplayPickerActivity extends Activity {
         
         // register receiver for bluetooth discovery found
         // Create a BroadcastReceiver for ACTION_FOUND
-        mReceiver = new BroadcastReceiver() {
+        foundReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                 
@@ -119,7 +119,7 @@ public class DisplayPickerActivity extends Activity {
             }
         };
         // Register the BroadcastReceiver
-        registerReceiver(mReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND)); // Don't forget to unregister during onDestroy
+        registerReceiver(foundReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND)); // Don't forget to unregister during onDestroy
         
         // register receiver for bluetooth discovery finished
         finishedReceiver = new BroadcastReceiver() {
@@ -140,7 +140,7 @@ public class DisplayPickerActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         
-        unregisterReceiver(mReceiver);
+        unregisterReceiver(foundReceiver);
         unregisterReceiver(finishedReceiver);
     }
     

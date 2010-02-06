@@ -32,20 +32,33 @@ public class DisplayPickerActivity extends Activity {
     ProgressBar progressBar;
     TextView progressText;
     
+    void setScanButtonReady() {
+        Log.i( TAG, "done scanning" );
+        discoveryUnderway=false;
+        progressBar.setVisibility(View.INVISIBLE);
+        progressText.setText("Scan for devices");
+    }
+    
+    void setScanButtonWorking() {
+        Log.i( TAG, "start scanning for other devices!" );
+        // flip a bit so we only can do this once at a time
+        discoveryUnderway=true;
+        
+        // flip the scan button over to an indeterminate progressbar
+        progressBar.setVisibility(View.VISIBLE);
+        progressText.setText("Scanning");
+    }
+    
     class ScanButtonClickListener implements View.OnClickListener {
         public void onClick(View view) {
             if(!discoveryUnderway) {
-                // flip a bit so we only can do this once at a time
-                discoveryUnderway=true;
-                
-                // flip the scan button over to an indeterminate progressbar
-                progressBar.setVisibility(View.VISIBLE);
-                progressText.setText("Scanning");
-                
+                setScanButtonWorking();
                 
                 // search for unpaired devices
-                Log.i( TAG, "start scanning for other devices!" );
                 mBluetoothAdapter.startDiscovery();
+            } else {
+                mBluetoothAdapter.cancelDiscovery();
+                setScanButtonReady();
             }
         }
     }
@@ -115,10 +128,7 @@ public class DisplayPickerActivity extends Activity {
                 
                 // when discovery is complete
                 if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                    Log.i( TAG, "done scanning" );
-                    discoveryUnderway=false;
-                    progressBar.setVisibility(View.INVISIBLE);
-                    progressText.setText("Scan for devices");
+                    setScanButtonReady();
                 }
             }
         };

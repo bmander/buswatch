@@ -128,6 +128,8 @@ public class DisplayPickerActivity extends Activity {
     }
     
     public void onDestroy() {
+        super.onDestroy();
+        
         unregisterReceiver(mReceiver);
         unregisterReceiver(finishedReceiver);
     }

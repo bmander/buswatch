@@ -1,6 +1,27 @@
 Android interface between transit real-time arrival APIs and bluetooth readout devices.
 
-Building:
+== Build ==
+
+=== Install Android SDK ===
+
+Heed the instructions at http://developer.android.com/sdk/index.html
+
+=== Install relevant packages ===
+
+From the command line
+
+$ android
+
+Then:
+
+Download and install all the API 7 packages
+
+=== A couple non-checked-in files to create ===
+
+Tell the builder where to look for the SDK:
+
+$ cd /path/to/buswatch
+$ echo "sdk.dir=/path/to/your/sdk/directory" > local.properties
 
 Create a file res/values/onebusaway.xml
 
@@ -9,5 +30,7 @@ Create a file res/values/onebusaway.xml
       <string name="apikey">YOUR_ONEBUSAWAY_API_KEY</string>
   </resources>
 
-This Android project is proudly Eclipse-free. Get your command line on!
+=== Debug Build ===
+
+$ ant debug
 
